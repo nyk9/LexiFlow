@@ -1,0 +1,31 @@
+[package]
+name = "lexiflow-backend"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+axum = { version = "0.7", features = ["macros"] }
+shuttle-axum = "0.47"
+shuttle-runtime = "0.47"
+shuttle-shared-db = { version = "0.47", features = ["postgres"] }
+diesel = { version = "2.1", features = ["postgres", "chrono", "uuid", "serde_json"] }
+diesel-async = { version = "0.4", features = ["postgres", "deadpool"] }
+tokio = { version = "1.0", features = ["full"] }
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+jsonwebtoken = "9"
+argon2 = "0.5"
+uuid = { version = "1.0", features = ["v4", "serde"] }
+chrono = { version = "0.4", features = ["serde"] }
+validator = { version = "0.16", features = ["derive"] }
+tower-http = { version = "0.5", features = ["cors", "trace"] }
+tracing = "0.1"
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
+thiserror = "1.0"
+anyhow = "1.0"
+dotenvy = "0.15"
+deadpool-diesel = { version = "0.5", features = ["postgres"] }
+
+[dev-dependencies]
+tower = { version = "0.4", features = ["util"] }
+hyper = { version = "1.0", features = ["full"] }

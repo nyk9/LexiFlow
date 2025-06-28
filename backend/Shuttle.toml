@@ -1,0 +1,5 @@
+[package]
+name = "lexiflow-backend"
+
+[build]
+runtime = "shuttle-axum"
