@@ -1,12 +1,9 @@
-use axum::{
-    extract::State,
-    http::StatusCode,
+use shuttle_axum::axum::{
     response::Json,
     routing::{get, post, put, delete},
     Router,
 };
 use shuttle_axum::ShuttleAxum;
-use shuttle_shared_db::Postgres;
 use std::sync::Arc;
 use tower_http::cors::CorsLayer;
 use tracing::{info, Level};
@@ -28,7 +25,7 @@ pub type AppState = Arc<database::connection::DbPool>;
 
 #[shuttle_runtime::main]
 async fn main(
-    #[shuttle_shared_db::Postgres] db: sqlx::PgPool,
+    #[shuttle_shared_db::Postgres] database_url: String,
 ) -> ShuttleAxum {
     // Initialize tracing
     tracing_subscriber::fmt()
@@ -37,8 +34,10 @@ async fn main(
 
     info!("Starting LexiFlow backend server");
 
-    // Create database connection pool
-    let pool = create_pool().await.map_err(|e| {
+    info!("Connecting to database: {}", database_url.split('@').last().unwrap_or("hidden"));
+
+    // Create Diesel connection pool
+    let pool = create_pool(&database_url).await.map_err(|e| {
         eprintln!("Failed to create database pool: {}", e);
         std::process::exit(1);
     }).unwrap();
@@ -48,17 +47,7 @@ async fn main(
     let app = Router::new()
         .route("/health", get(health_check))
         .nest("/api", create_api_routes())
-        .layer(
-            CorsLayer::new()
-                .allow_origin("http://localhost:3000".parse().unwrap())
-                .allow_methods([
-                    axum::http::Method::GET,
-                    axum::http::Method::POST,
-                    axum::http::Method::PUT,
-                    axum::http::Method::DELETE,
-                ])
-                .allow_headers([axum::http::header::CONTENT_TYPE]),
-        )
+        .layer(CorsLayer::permissive())
         .with_state(state);
 
     info!("Server configured successfully");

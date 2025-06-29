@@ -3,3 +3,8 @@ name = "lexiflow-backend"
 
 [build]
 runtime = "shuttle-axum"
+apt-packages = ["libpq-dev", "postgresql-client"]
+
+[env]
+# Environment variables for the deployed service
+RUST_LOG = "info"

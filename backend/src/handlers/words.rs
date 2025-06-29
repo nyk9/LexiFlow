@@ -1,12 +1,11 @@
-use axum::{
-    extract::{Path, Query, State},
+use shuttle_axum::axum::{
+    extract::{Json as AxumJson, Path, Query, State},
     http::StatusCode,
     response::Json,
 };
 use diesel::prelude::*;
 use diesel_async::RunQueryDsl;
 use serde::Deserialize;
-use std::collections::HashMap;
 use uuid::Uuid;
 use validator::Validate;
 
@@ -35,31 +34,48 @@ pub async fn get_words(
     let per_page = params.per_page.unwrap_or(20).clamp(1, 100);
     let offset = (page - 1) * per_page;
 
-    let mut query = words::table.into_boxed();
+    // Build search pattern once if needed
+    let search_pattern = params.search.as_ref().map(|s| format!("%{}%", s));
+    
+    let mut base_query = words::table.into_boxed();
 
-    if let Some(search) = params.search {
-        let search_pattern = format!("%{}%", search);
-        query = query.filter(
-            words::word.ilike(&search_pattern)
-                .or(words::meaning.ilike(&search_pattern))
-                .or(words::translation.ilike(&search_pattern))
+    if let Some(ref pattern) = search_pattern {
+        base_query = base_query.filter(
+            words::word.ilike(pattern)
+                .or(words::meaning.ilike(pattern))
+                .or(words::translation.ilike(pattern))
         );
     }
 
-    if let Some(category) = params.category {
-        query = query.filter(words::category.eq(category));
+    if let Some(ref category) = params.category {
+        base_query = base_query.filter(words::category.eq(category));
     }
 
-    let total_query = query.clone();
-    let words_query = query
+    // Execute count query
+    let total_result: i64 = base_query.count().get_result(&mut conn).await?;
+    
+    // Rebuild query for words with same filters
+    let mut words_query = words::table.into_boxed();
+    
+    if let Some(ref pattern) = search_pattern {
+        words_query = words_query.filter(
+            words::word.ilike(pattern)
+                .or(words::meaning.ilike(pattern))
+                .or(words::translation.ilike(pattern))
+        );
+    }
+
+    if let Some(ref category) = params.category {
+        words_query = words_query.filter(words::category.eq(category));
+    }
+    
+    // Execute words query
+    let words_result: Vec<Word> = words_query
         .order(words::created_at.desc())
         .limit(per_page as i64)
-        .offset(offset as i64);
-
-    let (words_result, total_result) = tokio::try_join!(
-        words_query.load::<Word>(&mut conn),
-        total_query.count().get_result::<i64>(&mut conn)
-    )?;
+        .offset(offset as i64)
+        .load(&mut conn)
+        .await?;
 
     Ok(Json(WordsResponse {
         words: words_result,
@@ -85,7 +101,7 @@ pub async fn get_word(
 
 pub async fn create_word(
     State(pool): State<AppState>,
-    Json(payload): Json<CreateWord>,
+    AxumJson(payload): AxumJson<CreateWord>,
 ) -> Result<(StatusCode, Json<Word>), AppError> {
     payload.validate()?;
     
@@ -102,7 +118,7 @@ pub async fn create_word(
 pub async fn update_word(
     State(pool): State<AppState>,
     Path(id): Path<Uuid>,
-    Json(payload): Json<UpdateWord>,
+    AxumJson(payload): AxumJson<UpdateWord>,
 ) -> Result<Json<Word>, AppError> {
     payload.validate()?;
     

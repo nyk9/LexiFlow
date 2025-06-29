@@ -1,4 +1,4 @@
-use axum::{
+use shuttle_axum::axum::{
     http::StatusCode,
     response::{IntoResponse, Response},
     Json,
@@ -13,6 +13,9 @@ pub enum AppError {
     
     #[error("Connection pool error: {0}")]
     Pool(#[from] deadpool_diesel::PoolError),
+    
+    #[error("Async pool error: {0}")]
+    AsyncPool(#[from] diesel_async::pooled_connection::deadpool::PoolError),
     
     #[error("Validation error: {0}")]
     Validation(#[from] validator::ValidationErrors),
@@ -42,6 +45,10 @@ impl IntoResponse for AppError {
             }
             AppError::Pool(_) => {
                 tracing::error!("Connection pool error: {}", self);
+                (StatusCode::INTERNAL_SERVER_ERROR, "Database connection error".to_string())
+            }
+            AppError::AsyncPool(_) => {
+                tracing::error!("Async connection pool error: {}", self);
                 (StatusCode::INTERNAL_SERVER_ERROR, "Database connection error".to_string())
             }
             AppError::Validation(errors) => {

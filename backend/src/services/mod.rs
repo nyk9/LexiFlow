@@ -1,2 +1,1 @@
-pub mod word_service;
-pub mod auth_service;
+// Service modules will be implemented as needed

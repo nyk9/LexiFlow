@@ -1,5 +1,5 @@
-use axum::{
-    extract::State,
+use shuttle_axum::axum::{
+    extract::{Json as AxumJson, State},
     http::StatusCode,
     response::Json,
 };
@@ -61,7 +61,7 @@ pub async fn get_statistics(
 
 pub async fn record_activity(
     State(pool): State<AppState>,
-    Json(payload): Json<CreateActivity>,
+    AxumJson(payload): AxumJson<CreateActivity>,
 ) -> Result<(StatusCode, Json<LearningActivity>), AppError> {
     payload.validate()?;
     
