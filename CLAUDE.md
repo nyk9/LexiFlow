@@ -1,292 +1,330 @@
-# 語彙学習アプリケーション開発プロジェクト
+# English Learning App Requirements Definition - Updated 2025-08-07
 
-## プロジェクト概要
-モダンなフルスタック語彙学習ウェブアプリケーション「LexiFlow」の開発。デスクトップアプリケーションの機能をウェブ版として再実装し、単語管理、学習進捗追跡、データの永続化機能を提供します。
+## IMPORTANT: Requirements Evolution Note
 
-## 技術スタック
+The project has evolved from the original LexiFlow vocabulary app concept to a focused English learning application with AI conversation features. See "Current Requirements Discussion" section below for latest requirements.
 
-### フロントエンド
-- **フレームワーク**: Next.js 15+ (App Router)
-- **言語**: TypeScript 5+
-- **スタイリング**: Tailwind CSS 4+ + Shadcn/ui
-- **状態管理**: React Query/TanStack Query
-- **フォーム処理**: React Hook Form + Zod validation
-- **認証**: カスタム認証フック（Rust JWT連携）
-- **デプロイ**: Vercel
+## App Concept Finalized (August 7, 2025)
 
-### バックエンド
-- **フレームワーク**: Rust + Shuttle.rs
-- **ウェブフレームワーク**: Axum 0.7+
-- **データベース**: PostgreSQL 15+
-- **ORM**: Diesel 2+ with diesel-async
-- **認証**: JWT + Argon2 (Rust実装)
-- **デプロイ**: Shuttle
+### Core App Vision ✅
 
-### Rust依存関係 (主要クレート)
-```toml
-[dependencies]
-axum = "0.7"
-shuttle-axum = "0.47"
-shuttle-runtime = "0.47"
-shuttle-shared-db = { version = "0.47", features = ["postgres"] }
-diesel = { version = "2.1", features = ["postgres", "chrono", "uuid"] }
-diesel-async = { version = "0.4", features = ["postgres", "deadpool"] }
-tokio = { version = "1.0", features = ["full"] }
-serde = { version = "1.0", features = ["derive"] }
-serde_json = "1.0"
-jsonwebtoken = "9"
-argon2 = "0.5"
-uuid = { version = "1.0", features = ["v4", "serde"] }
-chrono = { version = "0.4", features = ["serde"] }
-validator = { version = "0.16", features = ["derive"] }
-tower-http = { version = "0.5", features = ["cors", "trace"] }
-tracing = "0.1"
-tracing-subscriber = "0.3"
-thiserror = "1.0"
-anyhow = "1.0"
+**Hybrid Vocabulary + AI Conversation Learning App**
+
+The app combines manual vocabulary collection with natural AI conversation practice, where AI intelligently suggests new vocabulary based on conversation analysis.
+
+#### What the App WILL Do:
+
+- ✅ Manual vocabulary collection with rich metadata (definitions, phonetics, examples, translations)
+- ✅ Free-form AI conversation practice for natural dialogue
+- ✅ AI analyzes conversations and suggests relevant vocabulary to add based on user struggles or knowledge gaps
+- ✅ Simple, focused integration between vocabulary management and conversation features
+
+#### What the App Will NOT Do:
+
+- ❌ Grammar/writing correction focus
+- ❌ Structured course curriculum with lessons/modules
+- ❌ Separate disconnected vocabulary and conversation systems
+- ❌ Vocabulary-forced conversations (AI creating conversations around specific words)
+- ❌ Overly complex bidirectional AI systems
+
+### Current Requirements Discussion (August 5-7, 2025)
+
+#### Finalized Requirements
+
+##### Learning Objectives
+
+- **Target Level**: B2 English proficiency
+- **Learning Methods**:
+  1. User-initiated word registration with rich metadata
+  2. Real-time English conversation with AI
+  3. AI-suggested vocabulary based on conversation analysis
+
+##### Word Management Features
+
+- **Word Card Metadata**:
+  - Part of speech
+  - Example sentences
+  - Phonetic symbols
+  - Detailed semantic definitions
+  - Japanese translation
+
+##### AI Conversation Features - FINALIZED ✅
+
+- **Conversation Style**: Free-form natural dialogue (not vocabulary-focused)
+- **AI Intelligence**: Analyzes user conversation for vocabulary gaps and suggests new words
+- **Integration**: One-way learning flow (AI suggests → user adds to vocabulary collection)
+
+**Vocabulary Detection System**:
+
+- **Primary Method**: Post-conversation automatic analysis (non-disruptive)
+- **Secondary Method**: User-controlled mid-conversation vocabulary queries
+
+**Mid-Conversation Vocabulary Help**:
+
+- **Trigger**: User explicitly asks vocabulary questions during conversation
+- **Response Mode**: Full vocabulary tutor pause mode until user chooses to resume conversation
+- **Features**: Detailed word explanations, usage examples, context tips, immediate add-to-collection option
+
+**Post-Conversation Vocabulary Suggestions**:
+
+- **Presentation**: Interactive swipeable cards interface
+- **Content**: AI-suggested words based on conversation gap analysis
+- **User Actions**: Swipe right to add to vocabulary collection, swipe left to dismiss
+- **Word Data**: Each suggestion includes definition, pronunciation, example usage
+
+**Complete User Experience Flow**:
+
+1. **Natural AI Conversation** → Free-form dialogue practice
+2. **Optional Vocabulary Pause** → Ask vocabulary questions anytime, AI switches to tutor mode
+3. **Resume Conversation** → Return to natural dialogue when ready
+4. **End Conversation** → AI presents vocabulary suggestion cards
+5. **Swipe to Collect** → Build vocabulary collection from AI suggestions
+
+##### Progress Indicators
+
+- Number of logins
+- Number of registered words
+- Conversation session metrics (future consideration)
+
+##### Project Constraints
+
+- **Purpose**: Personal development (non-profit)
+- **Budget**: Practically 0 yen
+- **Development Time**:
+  - Weekdays: 1 hour/day
+  - Weekends: 1-7 hours/day
+
+### Items Under Consideration
+
+#### Technology Stack
+
+- **Frontend**: Next.js for MVP (considering future Nuxt migration)
+- **Cross-platform**: Considering Tauri 2.0 for mobile
+- **Database Options**: Leapcell, Shuttle, Neon, Supabase
+- **Voice Features**: Web Speech API + Gemini API
+
+#### Unresolved Technical Decisions
+
+- Database selection criteria
+- Multi-device synchronization implementation
+- Web API implementation for cross-platform
+- AI conversation difficulty adjustment mechanisms
+- Privacy and data management approach
+
+## Technical Architecture - FINALIZED ✅ (August 7, 2025)
+
+### Data Storage Strategy
+
+**Conversation Data Approach**: Store meaningful learning data rather than raw transcripts
+
+- ✅ **Conversation Flow**: Topic progression + Linguistic complexity analysis
+- ✅ **Skills Assessment**: Accuracy metrics (grammar, vocabulary appropriateness, sentence complexity) + Fluency indicators (conversation flow smoothness, response timing, natural phrase usage)
+- ✅ **Vocabulary Suggestions**: Contextual storage with conversation context where words were identified
+
+### Complete Database Schema
+
+**Legacy Tables** (from original requirements):
+
+```sql
+-- Core user management
+users: id, email, password_hash, created_at, updated_at
+
+-- User vocabulary collection
+words: id, user_id, word, meaning, translation, category, part_of_speech, phonetic, example, created_at, updated_at
+
+-- Vocabulary categories
+categories: id, user_id, name, description, created_at
 ```
 
-## ディレクトリ構造(案)
+**New AI Conversation Tables**:
 
-```
-vocabulary-app/
-├── frontend/                    # Next.jsフロントエンド
-│   ├── src/
-│   │   ├── app/                # App Routerページ
-│   │   │   ├── (auth)/         # 認証関連ページグループ
-│   │   │   ├── words/          # 単語管理ページ
-│   │   │   ├── dashboard/      # ダッシュボード
-│   │   │   └── api/            # API Routes (必要に応じて)
-│   │   ├── components/         # 共通Reactコンポーネント
-│   │   │   ├── ui/             # Shadcn/ui基本コンポーネント
-│   │   │   └── layout/         # レイアウトコンポーネント
-│   │   ├── features/           # 機能別ディレクトリ
-│   │   │   ├── auth/           # 認証機能
-│   │   │   ├── words/          # 単語管理機能
-│   │   │   └── dashboard/      # ダッシュボード機能
-│   │   ├── hooks/              # React カスタムフック
-│   │   ├── lib/                # ユーティリティとAPI
-│   │   │   ├── api.ts          # API クライアント
-│   │   │   ├── auth.ts         # 認証ヘルパー
-│   │   │   ├── utils.ts        # 共通ユーティリティ
-│   │   │   └── validations.ts  # Zodスキーマ
-│   │   └── types/              # TypeScript型定義
-├── backend/                     # Rust APIサーバー
-│   ├── src/
-│   │   ├── main.rs             # アプリケーションエントリーポイント
-│   │   ├── lib.rs              # ライブラリルート
-│   │   ├── config/             # 設定管理
-│   │   │   └── mod.rs
-│   │   ├── models/             # データモデル（Diesel）
-│   │   │   ├── mod.rs
-│   │   │   ├── word.rs
-│   │   │   ├── user.rs
-│   │   │   └── activity.rs
-│   │   ├── handlers/           # APIハンドラー
-│   │   │   ├── mod.rs
-│   │   │   ├── auth.rs
-│   │   │   ├── words.rs
-│   │   │   └── statistics.rs
-│   │   ├── middleware/         # 認証・CORS等のミドルウェア
-│   │   │   ├── mod.rs
-│   │   │   ├── auth.rs
-│   │   │   └── cors.rs
-│   │   ├── services/           # ビジネスロジック
-│   │   │   ├── mod.rs
-│   │   │   ├── auth_service.rs
-│   │   │   └── word_service.rs
-│   │   ├── database/           # DB接続・マイグレーション
-│   │   │   ├── mod.rs
-│   │   │   └── connection.rs
-│   │   ├── errors/             # カスタムエラー定義
-│   │   │   └── mod.rs
-│   │   └── utils/              # ユーティリティ関数
-│   │       └── mod.rs
-│   ├── migrations/             # Dieselマイグレーション
-│   ├── tests/                  # 統合テスト
-│   ├── Cargo.toml
-│   ├── Shuttle.toml
-│   └── diesel.toml
-└── README.md
+```sql
+-- Conversation sessions
+conversation_sessions: id, user_id, started_at, ended_at, duration_minutes
+
+-- Topic progression tracking (conversation flow)
+conversation_topics: id, session_id, topic, order_sequence, complexity_level, created_at
+
+-- Linguistic complexity analysis (conversation flow)
+linguistic_analysis: id, session_id, avg_sentence_length, vocabulary_level, grammar_complexity, created_at
+
+-- Skills assessment (accuracy & fluency metrics)
+skills_assessments: id, session_id, grammar_accuracy_score, vocabulary_appropriateness_score, sentence_complexity_score, flow_smoothness_score, response_timing_avg, natural_phrase_usage_score, created_at
+
+-- Contextual vocabulary suggestions
+vocabulary_suggestions: id, session_id, suggested_word, user_word_used, conversation_context, suggestion_reason, status, created_at
 ```
 
-## 主要機能要件
+### Data Architecture Decisions
 
-### 1. 認証システム
-- **ユーザー登録・ログイン**: JWT + Argon2による安全な認証
-- **セッション管理**: トークン更新とセキュアな状態管理
-- **パスワードリセット**: セキュアなパスワード変更機能
+**What We Store**:
 
-### 2. 単語管理システム
-- **CRUD操作**: 単語の作成、読み取り、更新、削除
-- **データフィールド**: 単語、意味、翻訳、カテゴリ、品詞、例文
-- **検索・フィルタリング**: リアルタイム検索、カテゴリ別フィルター
-- **一括操作**: 複数選択による一括削除・編集
-- **データ検証**: Zodスキーマによるフロントエンド・バックエンド連携検証
+- ✅ Conversation flow patterns and topic progression
+- ✅ Linguistic complexity metrics for learning assessment
+- ✅ Vocabulary suggestions with conversation context
+- ✅ Skills assessment scores (accuracy + fluency)
 
-### 3. 学習進捗トラッキング
-- **統計情報**: 学習活動の可視化（チャート表示）
-- **進捗表示**: カテゴリ別学習進捗、連続学習日数
-- **アクティビティログ**: 日次学習記録の管理
+**What We Don't Store**:
 
-### 4. UI/UX機能
-- **レスポンシブデザイン**: モバイルファースト設計
-- **ダークモード**: ライト/ダークテーマ切り替え
-- **アクセシビリティ**: WCAG準拠のUI設計
-- **リアルタイム更新**: 即座のフィードバックとローディング状態
+- ❌ Complete conversation transcripts (privacy + storage efficiency)
+- ❌ Interaction patterns or engagement metrics (not essential for B2 learning)
+- ❌ Abstract skill categories or language functions (too complex for MVP)
 
-## API設計
+## Platform Decision - FINALIZED ✅ (August 7, 2025)
 
-### 認証エンドポイント
+### Development Path: Start Simple Evolution
+
+**Decision Made**: Progressive development path starting with familiar technologies, evolving to Rust learning goals.
+
+**Phase 1 - MVP (Immediate Focus)**:
+
+- **Frontend**: Next.js 15+ (App Router) with TypeScript
+- **Backend**: Next.js API Routes (familiar, fast development)
+- **Database**: Web-friendly option (Supabase or Neon)
+- **Voice**: Web Speech API (frontend) + Gemini API (via API Routes)
+- **Deployment**: Vercel (frontend) + database hosting
+- **Focus**: Get working conversation + vocabulary features quickly
+
+**Phase 2 - Backend Migration (Future)**:
+
+- **Frontend**: Keep existing Next.js frontend
+- **Backend**: Migrate API Routes to Rust + Axum server
+- **Database**: Migrate to PostgreSQL with Diesel
+- **Focus**: Learn Rust backend development with working features
+
+**Phase 3 - Platform Expansion (Optional)**:
+
+- **Desktop**: Consider Tauri wrapper if desired
+- **Mobile**: Progressive Web App capabilities
+- **Focus**: Multi-platform access if needed
+
+### Architecture Benefits
+
+**Advantages of Evolution Path**:
+
+- ✅ **Immediate productivity**: Start coding today with comfortable Next.js
+- ✅ **Risk mitigation**: Working app first, then technology experiments
+- ✅ **Incremental learning**: Rust practice when features are stable
+- ✅ **Flexibility**: Can stop at any phase based on satisfaction
+- ✅ **Time constraint friendly**: Matches 1-hour daily development limit
+
+**What This Approach Avoids**:
+
+- ❌ Complex setup blocking initial development
+- ❌ Learning multiple new technologies simultaneously
+- ❌ Abandoning incomplete projects due to complexity
+- ❌ Analysis paralysis from too many technical choices
+
+### Updated Technology Stack
+
+**Phase 1 (MVP) Technology Stack**:
+
+- **Frontend**: Next.js 15+ (App Router) + TypeScript 5+
+- **Styling**: Tailwind CSS + Shadcn/ui
+- **State Management**: React Query/TanStack Query
+- **Backend**: Next.js API Routes
+- **Database**: Supabase or Neon PostgreSQL
+- **AI Integration**: Gemini API via backend
+- **Voice**: Web Speech API (browser-based)
+- **Authentication**: Next-Auth or custom simple auth
+- **Deployment**: Vercel
+
+**Phase 2 Migration Targets**:
+
+- **Backend**: Rust + Axum + Diesel
+- **Database**: Self-managed PostgreSQL
+- **Authentication**: JWT + Argon2
+- **Deployment**: Backend on Shuttle.rs or similar
+
+## Final Technology Stack - FINALIZED ✅ (August 7, 2025)
+
+### Technology Decisions Based on AI Analysis
+
+**Core Stack (Phase 1 MVP)**:
+
+- **Database**: **Neon PostgreSQL** (chosen for clean Rust migration path)
+- **Authentication**: **Auth.js** with JWT (easily replicable in Rust)
+- **ORM**: **Prisma** (excellent Next.js integration and Auth.js compatibility)
+- **AI Provider**: **Gemini API** (free tier) with staged upgrade path
+- **API Design**: **OpenAPI-first** for clean migration contracts
+
+**Why Neon over Supabase**:
+
+- ✅ **Rust Migration Ready**: Pure PostgreSQL, no vendor lock-in
+- ✅ **Auth.js Compatibility**: JWT verification easily replicated in Rust
+- ✅ **Portable Schema**: Same database works for Next.js and Rust phases
+- ✅ **No Migration Overhead**: Same data, just different API endpoints
+
+### Enhanced Database Schema (8 Tables)
+
+**Core Tables**:
+
+```sql
+-- User management
+users(id, email, created_at, updated_at)
+
+-- User vocabulary collection with rich metadata
+words(id, user_id, word, meaning, translation, category, part_of_speech, phonetic, example, created_at, updated_at)
+
+-- Vocabulary categories
+categories(id, user_id, name, description, created_at)
 ```
-POST   /api/auth/register       # ユーザー登録
-POST   /api/auth/login          # ログイン
-POST   /api/auth/refresh        # トークン更新
-POST   /api/auth/logout         # ログアウト
-GET    /api/auth/me             # ユーザー情報取得
+
+**AI Conversation Analytics Tables**:
+
+```sql
+-- Conversation sessions
+conversation_sessions(id, user_id, started_at, ended_at, duration_minutes)
+
+-- Topic progression tracking (conversation flow)
+conversation_topics(id, session_id, topic, order_sequence, complexity_level, created_at)
+
+-- Linguistic complexity analysis (conversation flow)
+linguistic_analysis(id, session_id, avg_sentence_length, vocabulary_level, grammar_complexity, created_at)
+
+-- Skills assessment (accuracy & fluency metrics)
+skills_assessments(id, session_id, grammar_accuracy_score, vocabulary_appropriateness_score, sentence_complexity_score, flow_smoothness_score, response_timing_avg, natural_phrase_usage_score, created_at)
+
+-- Contextual vocabulary suggestions with conversation context
+vocabulary_suggestions(id, session_id, suggested_word, user_word_used, conversation_context, suggestion_reason, status, created_at)
 ```
 
-### 単語管理エンドポイント
-```
-GET    /api/words               # 単語一覧（ページネーション/フィルタ付き）
-POST   /api/words               # 新規単語作成
-GET    /api/words/:id           # 特定単語取得
-PUT    /api/words/:id           # 単語更新
-DELETE /api/words/:id           # 単語削除
-GET    /api/categories          # カテゴリ一覧
-```
+### API Architecture Strategy
 
-### 統計・アクティビティエンドポイント
-```
-GET    /api/statistics          # 学習統計取得
-POST   /api/statistics          # 学習活動記録
-GET    /api/activities          # アクティビティ履歴
-```
+**Phase 1 (Next.js API Routes)**:
 
-## データベース設計
+- OpenAPI contract definition from day one
+- Provider interface for swappable AI models (Gemini → Local → Premium)
+- JWT-based authentication with Auth.js
+- Prisma ORM with excellent Next.js integration
 
-### テーブル構造
-1. **users**: ユーザー情報（id, email, password_hash, created_at, updated_at）
-2. **words**: 単語情報（id, user_id, word, meaning, translation, category, part_of_speech, example, created_at, updated_at）
-3. **categories**: カテゴリ管理（id, user_id, name, description, created_at）
-4. **learning_activities**: 学習記録（id, user_id, activity_type, date, count, created_at）
+**Phase 2 (Rust Migration)**:
 
-## Rust開発のベストプラクティス
+- Implement identical API contracts in Axum
+- Reuse same Neon PostgreSQL database
+- Frontend changes only API base URL via environment variable
+- Gradual endpoint migration (start with conversation API)
 
-### エラーハンドリング
-- **Result<T, E>パターン**: 型安全なエラー処理
-- **thiserror**: カスタムエラー型の定義
-- **anyhow**: 簡潔なエラー処理とエラーチェーン
+### AI Provider Evolution Strategy
 
-### 非同期処理
-- **tokio**: 非同期ランタイム
-- **async/await**: 非同期API設計
-- **diesel-async**: 非同期データベース操作
+- **Phase 1**: Gemini free tier (MVP)
+- **Phase 2**: Local LLM option (offline/zero-cost)
+- **Phase 3**: Premium APIs (GPT/Claude high-quality)
+- **All providers**: Same response format, UI unchanged
 
-### 型安全性
-- **serde**: JSONシリアライゼーション
-- **validator**: データバリデーション
-- **diesel**: 型安全なORM操作
+### Development Timeline
 
-### セキュリティ
-- **argon2**: セキュアなパスワードハッシュ化
-- **jsonwebtoken**: JWT実装
-- **tower-http**: CORS・セキュリティミドルウェア
+**Week 1**: Next.js scaffold + Auth.js + Neon connection + Prisma schema + OpenAPI draft
+**Week 2**: Vocabulary CRUD + UI (Chrome-first)
+**Week 3**: Conversation API + TTS integration + Gemini connection
+**Week 4**: Assessment logic + difficulty adjustment
+**Week 5+**: Rust backend development + gradual migration
 
-## 環境設定
+### Immediate Next Steps
 
-### フロントエンド (.env.local)
-```bash
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_APP_NAME=LexiFlow
-```
-
-### バックエンド (.env)
-```bash
-DATABASE_URL=postgresql://username:password@localhost/vocabulary_db
-RUST_LOG=debug
-JWT_SECRET=your-secure-jwt-secret-key-here
-CORS_ORIGIN=http://localhost:3000
-```
-
-## 開発ワークフロー
-
-### Phase 1: プロジェクト初期化とセットアップ
-1. ディレクトリ構造の作成
-2. Rust依存関係のセットアップ（Cargo.toml）
-3. Next.js プロジェクト初期化
-4. 基本設定ファイルの作成
-
-### Phase 2: バックエンド基盤開発
-1. Shuttle.rs + Axumサーバーセットアップ
-2. PostgreSQL + Dieselデータベース設定
-3. 基本的なエラーハンドリングとログ設定
-4. CORS・セキュリティミドルウェア実装
-
-### Phase 3: 認証システム実装
-1. Rustでの JWT + Argon2 認証実装
-2. ユーザー登録・ログインAPI
-3. 認証ミドルウェアとトークン検証
-4. フロントエンド認証状態管理
-
-### Phase 4: 単語管理機能実装
-1. 単語CRUD API実装
-2. データベースマイグレーション
-3. バリデーションとエラーハンドリング
-4. フロントエンド単語管理UI
-
-### Phase 5: フロントエンド統合
-1. Shadcn/ui + Tailwind CSSセットアップ
-2. React Query によるAPI統合
-3. フォーム処理とバリデーション
-4. レスポンシブデザイン実装
-
-### Phase 6: 学習機能・統計実装
-1. 学習アクティビティ追跡API
-2. 統計データ生成とチャート表示
-3. ダッシュボード機能実装
-
-### Phase 7: 最適化とテスト
-1. パフォーマンス最適化
-2. エラーハンドリングの改善
-3. 統合テストとE2Eテスト
-4. セキュリティ監査
-
-## 特記事項
-
-## 会話ルール
-- **プロンプト**: 会話は全て英語で行う、日本語のプロンプトが来た場合は断るようにする
-- **返答**: 英語の出力と、簡単な日本語の翻訳を同時に出力するようにする
-- **意識**: 開発者の英語学習の一環で英語アプリを開発しているので、開発も積極的に英語学習要素を取り入れる
-
-### Rust学習を活かした開発指針
-- **所有権システム**: メモリ安全性を活かしたデータ管理
-- **パターンマッチング**: エラーハンドリングでの積極活用
-- **トレイト**: 共通インターフェースの適切な定義
-- **モジュールシステム**: 機能別の清潔な分割設計
-
-### 型安全なフロントエンド・バックエンド連携
-- **共通型定義**: TypeScript ↔ Rust 型整合性の確保
-- **API仕様**: OpenAPI仕様の活用検討
-- **バリデーション**: Zod ↔ validator クレート連携
-
-### パフォーマンス最適化
-- **データベース**: 適切なインデックス設定とクエリ最適化
-- **キャッシング**: React Query + Redis（将来的拡張）
-- **バンドル**: Next.js の最適化機能活用
-
-### セキュリティ考慮事項
-- **HTTPS**: 本番環境での必須設定
-- **CORS**: 適切なオリジン制限
-- **レート制限**: API エンドポイントの保護
-- **入力検証**: 全てのユーザー入力の検証
-
-### 拡張機能候補
-- **データエクスポート/インポート**: CSV/JSON形式対応
-- **高度な検索**: 正規表現、タグベース検索
-- **学習アルゴリズム**: スペースドリピティション実装
-- **多言語対応**: i18n国際化対応
-- **オフライン機能**: PWA実装
-- **AI機能**: 単語の自動分類や例文生成
-
-このプロジェクトは、Rustの学習成果を実践的に活用しながら、モダンなウェブ技術スタックで構築する実用的な語彙学習ツールです。各フェーズで段階的に機能を実装し、Rustの強力な型システムと安全性を活かした堅牢なアプリケーションの構築を目指します
+1. **Initialize Next.js project with TypeScript**
+2. **Setup Neon database and Prisma configuration**
+3. **Implement Auth.js authentication system**
+4. **Define OpenAPI contract for all endpoints**
+5. **Create vocabulary management MVP**
+6. **Integrate Gemini API for conversation features**
