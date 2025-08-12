@@ -1,0 +1,54 @@
+// prisma/schema.prisma
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+  // uncomment next line if you use Prisma <5.10
+  // directUrl = env("DATABASE_URL_UNPOOLED")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model User {
+  id          String       @id @default(cuid())
+  email       String       @unique
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+  words       Word[]
+  dateRecords DateRecord[]
+
+  @@map("users")
+}
+
+model Word {
+  id           String   @id @default(cuid())
+  word         String
+  meaning      String
+  translation  String?
+  partOfSpeech String[]
+  phonetic     String?
+  example      String?
+  category     String?
+  userId       String
+  user         User     @relation(fields: [userId], references: [id])
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@map("words")
+}
+
+model DateRecord {
+  id        String   @id @default(cuid())
+  date      String // YYYY-MM-DD format
+  add       Int      @default(0)
+  update    Int      @default(0)
+  quiz      Int      @default(0)
+  userId    String
+  user      User     @relation(fields: [userId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([date, userId])
+  @@map("date_records")
+}
