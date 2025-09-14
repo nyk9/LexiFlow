@@ -5,6 +5,7 @@ import { ThemeProvider } from "@/components/layouts/header/theme-provider";
 import Header from "@/components/layouts/header/header";
 import { Toast } from "@radix-ui/react-toast";
 import { Toaster } from "@/components/ui/toaster";
+import { AuthSessionProvider } from "@/components/auth/session-provider";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -21,16 +22,18 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="dark"
-          enableSystem
-          disableTransitionOnChange
-        >
-          <Header />
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <AuthSessionProvider>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="dark"
+            enableSystem
+            disableTransitionOnChange
+          >
+            <Header />
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </AuthSessionProvider>
       </body>
     </html>
   );

@@ -1,5 +1,5 @@
 import { getWordById } from "@/lib/getWords";
-import AddVocabularyForm from "@/features/vocabulary/components/vocabulary-form";
+import AddVocabularyForm from "@/features/vocabularyForm/components/vocabulary-form";
 import { redirect } from "next/navigation";
 
 export default async function UpdatePage({

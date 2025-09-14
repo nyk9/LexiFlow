@@ -27,10 +27,12 @@ interface QuizClientProps {
 
 export function QuizClient({ initialWords }: QuizClientProps) {
   const [currentWord, setCurrentWord] = useState<Word>(
-    initialWords[Math.floor(Math.random() * initialWords.length)]
+    initialWords[Math.floor(Math.random() * initialWords.length)],
   );
   const [userAnswer, setUserAnswer] = useState<string>("");
-  const [gradingResult, setGradingResult] = useState<GradingResponse | null>(null);
+  const [gradingResult, setGradingResult] = useState<GradingResponse | null>(
+    null,
+  );
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [error, setError] = useState<string | null>(null);
   const [isPending, startTransition] = useTransition();
@@ -63,12 +65,12 @@ export function QuizClient({ initialWords }: QuizClientProps) {
           userAnswer: userAnswer,
         }),
       });
-      
+
       if (!gradeResponse.ok) {
         throw new Error(`API responded with status: ${gradeResponse.status}`);
       }
-      
-      const result = await gradeResponse.json() as GradingResponse;
+
+      const result = (await gradeResponse.json()) as GradingResponse;
       setGradingResult(result);
 
       // Record quiz activity using Server Action
@@ -148,16 +150,14 @@ export function QuizClient({ initialWords }: QuizClientProps) {
             </div>
           )}
 
-          {error && (
-            <div className="text-red-500 text-sm">{error}</div>
-          )}
+          {error && <div className="text-red-500 text-sm">{error}</div>}
         </CardContent>
         <CardFooter className="flex justify-end space-x-2">
           {gradingResult ? (
             <Button onClick={handleNextQuestion}>次の問題へ</Button>
           ) : (
-            <Button 
-              onClick={handleGradeAnswer} 
+            <Button
+              onClick={handleGradeAnswer}
               disabled={isLoading || isPending}
             >
               採点する

@@ -31,9 +31,7 @@ export default function Error({
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <p className="text-sm text-gray-600">
-            エラー: {error.message}
-          </p>
+          <p className="text-sm text-gray-600">エラー: {error.message}</p>
           <Button onClick={reset} className="w-full">
             再試行
           </Button>

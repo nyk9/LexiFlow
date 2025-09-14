@@ -12,7 +12,8 @@ import {
 } from "@/components/ui/card";
 import Link from "next/link";
 import { Button } from "@/components/ui/button";
-import { Loader2 } from "lucide-react";
+import { Loader2, Plus, Check } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
 
 interface SuggestionWordProps {
   initialWords: Word[];
@@ -22,6 +23,9 @@ export function SuggestionWord({ initialWords }: SuggestionWordProps) {
   const [error, setError] = useState<string | null>(null);
   const [recommendations, setRecommendations] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(false);
+  const [addingWords, setAddingWords] = useState<Set<number>>(new Set());
+  const [addedWords, setAddedWords] = useState<Set<number>>(new Set());
+  const { toast } = useToast();
 
   const handleGetSuggestions = async () => {
     setLoading(true);
@@ -41,12 +45,12 @@ export function SuggestionWord({ initialWords }: SuggestionWordProps) {
 
       let data = await response.json();
       console.log("Raw API response:", data);
-      
+
       // Parse the JSON string from the text field
       if (data.text) {
         try {
           // Remove any markdown formatting and parse the JSON
-          const cleanText = data.text.replace(/```json\n?|\n?```/g, '').trim();
+          const cleanText = data.text.replace(/```json\n?|\n?```/g, "").trim();
           const parsedData = JSON.parse(cleanText);
           setRecommendations(parsedData);
           console.log("Parsed recommendations:", parsedData);
@@ -64,6 +68,51 @@ export function SuggestionWord({ initialWords }: SuggestionWordProps) {
       setError(`推薦の取得に失敗しました: ${err}`);
     } finally {
       setLoading(false);
+    }
+  };
+
+  const handleAddWord = async (wordData: any, index: number) => {
+    setAddingWords((prev) => new Set(prev).add(index));
+
+    try {
+      const response = await fetch("/api/words", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          word: wordData.word,
+          meaning: wordData.meaning,
+          translation: wordData.translation,
+          partOfSpeech: [wordData.part_of_speech],
+          phonetic: wordData.phonetic,
+          example: wordData.example,
+          category: wordData.category,
+        }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to add word: ${response.status}`);
+      }
+
+      setAddedWords((prev) => new Set(prev).add(index));
+      toast({
+        title: "単語を追加しました",
+        description: `「${wordData.word}」を単語帳に追加しました`,
+      });
+    } catch (error) {
+      console.error("Failed to add word:", error);
+      toast({
+        title: "エラー",
+        description: "単語の追加に失敗しました",
+        variant: "destructive",
+      });
+    } finally {
+      setAddingWords((prev) => {
+        const newSet = new Set(prev);
+        newSet.delete(index);
+        return newSet;
+      });
     }
   };
 
@@ -122,40 +171,80 @@ export function SuggestionWord({ initialWords }: SuggestionWordProps) {
           <CardContent>
             {recommendations.recommendations ? (
               <div className="space-y-4">
-                {recommendations.recommendations.map((word: any, index: number) => (
-                  <div key={index} className="border rounded-lg p-4 bg-gray-50">
-                    <div className="flex justify-between items-start mb-2">
-                      <h3 className="text-lg font-semibold text-blue-600">
-                        {word.word}
-                      </h3>
-                      <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">
-                        {word.category}
-                      </span>
+                {recommendations.recommendations.map(
+                  (word: any, index: number) => (
+                    <div
+                      key={index}
+                      className="border rounded-lg p-4 bg-gray-50"
+                    >
+                      <div className="flex justify-between items-start mb-2">
+                        <h3 className="text-lg font-semibold text-blue-600">
+                          {word.word}
+                        </h3>
+                        <div className="flex items-center gap-2">
+                          <span className="text-sm text-gray-500 bg-white px-2 py-1 rounded">
+                            {word.category}
+                          </span>
+                          <Button
+                            size="sm"
+                            onClick={() => handleAddWord(word, index)}
+                            disabled={
+                              addingWords.has(index) || addedWords.has(index)
+                            }
+                            className="min-w-[100px]"
+                          >
+                            {addingWords.has(index) ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                追加中...
+                              </>
+                            ) : addedWords.has(index) ? (
+                              <>
+                                <Check className="mr-2 h-4 w-4" />
+                                追加済み
+                              </>
+                            ) : (
+                              <>
+                                <Plus className="mr-2 h-4 w-4" />
+                                単語帳に追加
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      </div>
+
+                      <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3 text-sm">
+                        <p>
+                          <strong>品詞:</strong> {word.part_of_speech}
+                        </p>
+                        <p>
+                          <strong>発音:</strong> {word.phonetic}
+                        </p>
+                      </div>
+
+                      <p className="text-gray-700 mb-2">
+                        <strong>意味:</strong> {word.meaning}
+                      </p>
+
+                      <p className="text-gray-700 mb-2">
+                        <strong>日本語:</strong> {word.translation}
+                      </p>
+
+                      <p className="text-gray-600 italic">
+                        <strong>例文:</strong> {word.example}
+                      </p>
                     </div>
-                    
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-2 mb-3 text-sm">
-                      <p><strong>品詞:</strong> {word.part_of_speech}</p>
-                      <p><strong>発音:</strong> {word.phonetic}</p>
-                    </div>
-                    
-                    <p className="text-gray-700 mb-2">
-                      <strong>意味:</strong> {word.meaning}
-                    </p>
-                    
-                    <p className="text-gray-700 mb-2">
-                      <strong>日本語:</strong> {word.translation}
-                    </p>
-                    
-                    <p className="text-gray-600 italic">
-                      <strong>例文:</strong> {word.example}
-                    </p>
-                  </div>
-                ))}
-                
+                  ),
+                )}
+
                 {recommendations.learningAdvice && (
                   <div className="mt-6 p-4 bg-blue-50 border-l-4 border-blue-400">
-                    <h4 className="font-semibold text-blue-800 mb-2">学習アドバイス</h4>
-                    <p className="text-blue-700">{recommendations.learningAdvice}</p>
+                    <h4 className="font-semibold text-blue-800 mb-2">
+                      学習アドバイス
+                    </h4>
+                    <p className="text-blue-700">
+                      {recommendations.learningAdvice}
+                    </p>
                   </div>
                 )}
               </div>
