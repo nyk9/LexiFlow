@@ -333,7 +333,7 @@ To manage API costs and improve response times, especially for AI-related endpoi
 
 ### Immediate Next Steps
 
-1. ✅ **Initialize Next.js project with TypeScript** 
+1. ✅ **Initialize Next.js project with TypeScript**
 2. ✅ **Setup Neon database and Prisma configuration**
 3. **Implement Auth.js authentication system**
 4. **Define OpenAPI contract for all endpoints**
@@ -349,21 +349,25 @@ To manage API costs and improve response times, especially for AI-related endpoi
 #### ✅ Completed Features
 
 **Frontend Infrastructure**:
+
 - Next.js 15+ with TypeScript and App Router setup
 - Tailwind CSS + Shadcn/ui component library integration
 - Project structure with feature-based organization
 
 **Database & Data Management**:
+
 - Neon PostgreSQL database connection established
 - Prisma ORM configuration and schema definition
 - Basic CRUD operations for vocabulary management
 
 **Vocabulary Management System**:
+
 - Word model with rich metadata (word, meaning, translation, category, part_of_speech, phonetic, example)
 - Server-side word retrieval functionality
 - Word list display UI with category organization
 
 **AI Vocabulary Suggestions**:
+
 - Gemini API integration for vocabulary recommendations
 - User-initiated suggestion system (button-triggered, not auto-triggered)
 - Intelligent word analysis based on existing vocabulary
@@ -377,17 +381,20 @@ To manage API costs and improve response times, especially for AI-related endpoi
 - Loading states and user feedback
 
 **Caching Implementation**:
+
 - In-memory cache system for AI API responses
 - Cache key generation based on vocabulary data
 - TTL-based cache expiration for cost optimization
 
-#### 🚧 In Progress
-
 **Authentication System**:
+
 - Auth.js integration (planned)
 - User session management (planned)
 
+#### 🚧 In Progress
+
 **API Architecture**:
+
 - OpenAPI contract definition (planned)
 - Structured API endpoint documentation (planned)
 
@@ -416,6 +423,7 @@ To manage API costs and improve response times, especially for AI-related endpoi
 ### Technical Implementation Details
 
 **Current Tech Stack (Implemented)**:
+
 - **Frontend**: Next.js 15.4.6 with TypeScript
 - **Styling**: Tailwind CSS with Shadcn/ui components
 - **Database**: Neon PostgreSQL
@@ -425,6 +433,7 @@ To manage API costs and improve response times, especially for AI-related endpoi
 - **Development**: Turbopack for fast development builds
 
 **API Endpoints Implemented**:
+
 ```
 POST /api/suggestion-word/gemini/
 - Generates AI vocabulary suggestions based on existing words
@@ -433,6 +442,7 @@ POST /api/suggestion-word/gemini/
 ```
 
 **Component Architecture**:
+
 ```
 src/features/suggestionWord/
 ├── components/
@@ -448,6 +458,7 @@ src/features/suggestionWord/
 ### Development Workflow Established
 
 **User Experience Flow (Current)**:
+
 1. User visits vocabulary test page (`/test`)
 2. System displays current vocabulary collection
 3. User clicks "単語推薦を取得" button
@@ -456,6 +467,7 @@ src/features/suggestionWord/
 6. Loading states and error handling provide smooth UX
 
 **Development Standards**:
+
 - TypeScript strict mode for type safety
 - Component-based architecture with clear separation of concerns
 - Server-side data fetching with client-side interactivity
