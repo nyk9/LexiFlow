@@ -123,3 +123,6 @@ temp/
 # env
 .env
 .env.local
+# Claude IDE
+.claude/
+
