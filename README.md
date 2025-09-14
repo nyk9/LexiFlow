@@ -5,6 +5,7 @@ LexiFlow is a comprehensive full-stack vocabulary learning web application built
 ## 🚀 Features
 
 ### Core Functionality
+
 - **Word Management**: Create, read, update, and delete vocabulary entries
 - **Advanced Search**: Real-time search across words, meanings, and translations
 - **Categorization**: Organize words by categories (Business, Technology, Academic, etc.)
@@ -13,12 +14,14 @@ LexiFlow is a comprehensive full-stack vocabulary learning web application built
 - **Responsive Design**: Mobile-first design that works on all devices
 
 ### Word Features
+
 - **Rich Word Data**: Word, meaning, translation, category, part of speech, examples
 - **Validation**: Comprehensive data validation on both frontend and backend
 - **Filtering**: Filter words by category, search terms, and more
 - **Pagination**: Efficient pagination for large vocabulary collections
 
 ### Analytics & Tracking
+
 - **Learning Statistics**: Total words, category distribution, learning streaks
 - **Daily Activities**: Track and record learning sessions
 - **Progress Visualization**: Charts and metrics for learning insights
@@ -27,6 +30,7 @@ LexiFlow is a comprehensive full-stack vocabulary learning web application built
 ## 🛠 Technology Stack
 
 ### Frontend
+
 - **Framework**: Next.js 14+ (App Router)
 - **Language**: TypeScript 5+
 - **Styling**: Tailwind CSS 3+ with Shadcn/ui components
@@ -35,6 +39,7 @@ LexiFlow is a comprehensive full-stack vocabulary learning web application built
 - **UI Components**: Radix UI primitives with custom styling
 
 ### Backend
+
 - **Language**: Rust
 - **Framework**: Axum 0.7+ for web server
 - **Database**: PostgreSQL 15+ with Diesel ORM
@@ -43,6 +48,7 @@ LexiFlow is a comprehensive full-stack vocabulary learning web application built
 - **Validation**: Validator crate for data validation
 
 ### Database
+
 - **PostgreSQL**: Primary database with full ACID compliance
 - **Diesel ORM**: Type-safe database operations
 - **Migrations**: Automated database schema management
@@ -114,11 +120,13 @@ LexiFlow/
 ### Database Setup
 
 1. Install PostgreSQL and create a database:
+
 ```bash
 createdb lexiflow
 ```
 
 2. Set up the database URL in your environment:
+
 ```bash
 export DATABASE_URL="postgresql://username:password@localhost/lexiflow"
 ```
@@ -126,21 +134,25 @@ export DATABASE_URL="postgresql://username:password@localhost/lexiflow"
 ### Backend Setup
 
 1. Navigate to the backend directory:
+
 ```bash
 cd backend
 ```
 
 2. Install Diesel CLI:
+
 ```bash
 cargo install diesel_cli --no-default-features --features postgres
 ```
 
 3. Run database migrations:
+
 ```bash
 diesel migration run
 ```
 
 4. Install dependencies and run the server:
+
 ```bash
 cargo run
 ```
@@ -150,16 +162,19 @@ The API server will start on `http://localhost:8000`
 ### Frontend Setup
 
 1. Navigate to the frontend directory:
+
 ```bash
 cd frontend
 ```
 
 2. Install dependencies:
+
 ```bash
 npm install
 ```
 
 3. Start the development server:
+
 ```bash
 npm run dev
 ```
@@ -171,12 +186,14 @@ The web application will be available at `http://localhost:3000`
 ### Environment Variables
 
 **Frontend (.env.local):**
+
 ```bash
 NEXT_PUBLIC_API_URL=http://localhost:8000
 NEXT_PUBLIC_APP_NAME=LexiFlow
 ```
 
 **Backend (.env):**
+
 ```bash
 DATABASE_URL=postgresql://postgres:password@localhost/lexiflow
 RUST_LOG=debug
@@ -187,6 +204,7 @@ CORS_ORIGIN=http://localhost:3000
 ## 📡 API Endpoints
 
 ### Words Management
+
 ```
 GET    /api/words               # List words with pagination and filtering
 POST   /api/words               # Create new word
@@ -197,12 +215,14 @@ GET    /api/categories          # List all categories
 ```
 
 ### Statistics & Analytics
+
 ```
 GET    /api/statistics          # Get learning statistics
 POST   /api/statistics          # Record learning activity
 ```
 
 ### Health Check
+
 ```
 GET    /health                  # Health check endpoint
 ```
@@ -212,6 +232,7 @@ GET    /health                  # Health check endpoint
 ### Tables
 
 **words**
+
 - `id` (UUID, Primary Key)
 - `word` (VARCHAR, NOT NULL)
 - `meaning` (TEXT, NOT NULL)
@@ -223,12 +244,14 @@ GET    /health                  # Health check endpoint
 - `updated_at` (TIMESTAMPTZ)
 
 **categories**
+
 - `id` (UUID, Primary Key)
 - `name` (VARCHAR, UNIQUE, NOT NULL)
 - `description` (TEXT, NULLABLE)
 - `created_at` (TIMESTAMPTZ)
 
 **learning_activities**
+
 - `id` (UUID, Primary Key)
 - `activity_type` (VARCHAR, NOT NULL)
 - `date` (DATE, NOT NULL)
@@ -260,12 +283,14 @@ GET    /health                  # Health check endpoint
 ## 🚀 Deployment
 
 ### Backend (Shuttle.rs)
+
 ```bash
 cd backend
 cargo shuttle deploy
 ```
 
 ### Frontend (Vercel)
+
 ```bash
 cd frontend
 vercel deploy

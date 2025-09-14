@@ -305,6 +305,17 @@ vocabulary_suggestions(id, session_id, suggested_word, user_word_used, conversat
 - Frontend changes only API base URL via environment variable
 - Gradual endpoint migration (start with conversation API)
 
+**Caching Strategy**:
+
+To manage API costs and improve response times, especially for AI-related endpoints, a two-phase caching strategy will be implemented.
+
+- **Phase 1 (MVP)**: **In-memory cache** using a simple `Map` object within the API route.
+  - **Pros**: Zero cost, extremely fast, easy to implement for development.
+  - **Cons**: Not persistent (cache is lost on server restart) and not shared across serverless instances. Suitable for initial development and testing.
+- **Phase 2 (Production/Scale)**: **Vercel KV (Redis)** for a robust, persistent cache.
+  - **Pros**: High performance, data persistence, and shared across all serverless functions, making it ideal for production.
+  - **Cons**: Introduces a managed service dependency.
+
 ### AI Provider Evolution Strategy
 
 - **Phase 1**: Gemini free tier (MVP)
@@ -322,9 +333,143 @@ vocabulary_suggestions(id, session_id, suggested_word, user_word_used, conversat
 
 ### Immediate Next Steps
 
-1. **Initialize Next.js project with TypeScript**
-2. **Setup Neon database and Prisma configuration**
+1. ✅ **Initialize Next.js project with TypeScript**
+2. ✅ **Setup Neon database and Prisma configuration**
 3. **Implement Auth.js authentication system**
 4. **Define OpenAPI contract for all endpoints**
-5. **Create vocabulary management MVP**
-6. **Integrate Gemini API for conversation features**
+5. ✅ **Create vocabulary management MVP**
+6. ✅ **Integrate Gemini API for conversation features**
+
+## Development Progress - Updated 2025-08-12
+
+### Current Implementation Status
+
+**Phase 1 MVP Progress**: Currently developing core vocabulary and AI suggestion features
+
+#### ✅ Completed Features
+
+**Frontend Infrastructure**:
+
+- Next.js 15+ with TypeScript and App Router setup
+- Tailwind CSS + Shadcn/ui component library integration
+- Project structure with feature-based organization
+
+**Database & Data Management**:
+
+- Neon PostgreSQL database connection established
+- Prisma ORM configuration and schema definition
+- Basic CRUD operations for vocabulary management
+
+**Vocabulary Management System**:
+
+- Word model with rich metadata (word, meaning, translation, category, part_of_speech, phonetic, example)
+- Server-side word retrieval functionality
+- Word list display UI with category organization
+
+**AI Vocabulary Suggestions**:
+
+- Gemini API integration for vocabulary recommendations
+- User-initiated suggestion system (button-triggered, not auto-triggered)
+- Intelligent word analysis based on existing vocabulary
+- Rich suggestion display with:
+  - Word details (phonetics, part of speech, meaning)
+  - Japanese translations
+  - Example sentences with context
+  - Category-based organization
+  - Personalized learning advice
+- Proper JSON response parsing and error handling
+- Loading states and user feedback
+
+**Caching Implementation**:
+
+- In-memory cache system for AI API responses
+- Cache key generation based on vocabulary data
+- TTL-based cache expiration for cost optimization
+
+**Authentication System**:
+
+- Auth.js integration (planned)
+- User session management (planned)
+
+#### 🚧 In Progress
+
+**API Architecture**:
+
+- OpenAPI contract definition (planned)
+- Structured API endpoint documentation (planned)
+
+#### 📋 Next Development Priorities
+
+1. **User Authentication**:
+   - Implement Auth.js with JWT tokens
+   - User registration and login flows
+   - Session-based vocabulary access
+
+2. **Conversation Features**:
+   - Web Speech API integration for voice input
+   - Real-time AI conversation interface
+   - Conversation session tracking
+
+3. **Enhanced Vocabulary Features**:
+   - Add new words from suggestions
+   - Edit existing vocabulary entries
+   - Category management system
+
+4. **Progress Analytics**:
+   - Learning session tracking
+   - Progress visualization
+   - Conversation analytics integration
+
+### Technical Implementation Details
+
+**Current Tech Stack (Implemented)**:
+
+- **Frontend**: Next.js 15.4.6 with TypeScript
+- **Styling**: Tailwind CSS with Shadcn/ui components
+- **Database**: Neon PostgreSQL
+- **ORM**: Prisma (configured)
+- **AI Provider**: Gemini API (gemini-2.5-flash-lite model)
+- **Caching**: In-memory Map-based cache
+- **Development**: Turbopack for fast development builds
+
+**API Endpoints Implemented**:
+
+```
+POST /api/suggestion-word/gemini/
+- Generates AI vocabulary suggestions based on existing words
+- Implements intelligent caching and error handling
+- Returns structured JSON with recommendations and learning advice
+```
+
+**Component Architecture**:
+
+```
+src/features/suggestionWord/
+├── components/
+│   ├── suggestion-word.tsx (Client component with state management)
+│   └── word-list.tsx (Server component for data fetching)
+├── lib/
+│   ├── getWords.ts (Database operations)
+│   └── cache.ts (Caching utilities)
+└── types/
+    └── word.ts (TypeScript interfaces)
+```
+
+### Development Workflow Established
+
+**User Experience Flow (Current)**:
+
+1. User visits vocabulary test page (`/test`)
+2. System displays current vocabulary collection
+3. User clicks "単語推薦を取得" button
+4. AI analyzes existing vocabulary and generates 5 contextual suggestions
+5. Suggestions displayed in structured format with detailed information
+6. Loading states and error handling provide smooth UX
+
+**Development Standards**:
+
+- TypeScript strict mode for type safety
+- Component-based architecture with clear separation of concerns
+- Server-side data fetching with client-side interactivity
+- Comprehensive error handling and user feedback
+- Responsive design with mobile-first approach
