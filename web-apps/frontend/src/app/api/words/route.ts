@@ -1,29 +1,41 @@
 import { NextRequest, NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { withCache, generateCacheKey, CACHE_CONFIG, invalidateCache } from "@/lib/cache";
-
-// For demo purposes, using a hardcoded user ID
-const DEMO_USER_ID = "demo-user-001";
+import {
+  withCache,
+  generateCacheKey,
+  CACHE_CONFIG,
+  invalidateCache,
+} from "@/lib/cache";
+import { auth } from "../../../../auth";
 
 export async function GET() {
   try {
-    const cacheKey = generateCacheKey(CACHE_CONFIG.WORDS_LIST.keyPrefix, DEMO_USER_ID);
-    
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+    const cacheKey = generateCacheKey(
+      CACHE_CONFIG.WORDS_LIST.keyPrefix,
+      userId,
+    );
+
     const words = await withCache(
       cacheKey,
       async () => {
         return await db.word.findMany({
           where: {
-            userId: DEMO_USER_ID,
+            userId: userId,
           },
           orderBy: {
             createdAt: "desc",
           },
         });
       },
-      CACHE_CONFIG.WORDS_LIST.ttl
+      CACHE_CONFIG.WORDS_LIST.ttl,
     );
-    
+
     return NextResponse.json(words);
   } catch (error) {
     console.error("Error fetching words:", error);
@@ -34,8 +46,40 @@ export async function GET() {
   }
 }
 
+async function recordWordActivity(userId: string, activityType: 'add' | 'update') {
+  const today = new Date().toISOString().slice(0, 10);
+  
+  const updateData = activityType === 'add' 
+    ? { add: { increment: 1 } }
+    : { update: { increment: 1 } };
+
+  await db.dateRecord.upsert({
+    where: {
+      date_userId: {
+        date: today,
+        userId: userId,
+      },
+    },
+    create: {
+      date: today,
+      add: activityType === 'add' ? 1 : 0,
+      update: activityType === 'update' ? 1 : 0,
+      quiz: 0,
+      userId: userId,
+    },
+    update: updateData,
+  });
+}
+
 export async function POST(request: NextRequest) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    const userId = session.user.id;
+
     const {
       word,
       meaning,
@@ -55,13 +99,16 @@ export async function POST(request: NextRequest) {
         phonetic: phonetic || null,
         example: example || null,
         category: category || null,
-        userId: DEMO_USER_ID,
+        userId: userId,
       },
     });
-    
+
+    // Record the word addition activity
+    await recordWordActivity(userId, 'add');
+
     // Invalidate word list cache when new word is created
     invalidateCache(CACHE_CONFIG.WORDS_LIST.keyPrefix);
-    
+
     return NextResponse.json(newWord);
   } catch (error) {
     console.error("Error creating word:", error);

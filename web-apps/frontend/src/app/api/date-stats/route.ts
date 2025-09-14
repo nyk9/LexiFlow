@@ -1,21 +1,24 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-
-// For demo purposes, using a hardcoded user ID
-const DEMO_USER_ID = "demo-user-001";
+import { auth } from "../../../../auth";
 
 export async function GET() {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
     const dateRecords = await db.dateRecord.findMany({
       where: {
-        userId: DEMO_USER_ID,
+        userId: session.user.id,
       },
       orderBy: {
         date: "asc",
       },
     });
 
-    const dateStats = dateRecords.map(record => ({
+    const dateStats = dateRecords.map((record) => ({
       date: record.date,
       add: record.add,
       update: record.update,

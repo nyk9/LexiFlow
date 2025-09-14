@@ -2,6 +2,7 @@
 
 import { db } from "./db";
 import { revalidateTag } from "next/cache";
+import { cookies } from "next/headers";
 
 // For demo purposes, using a hardcoded user ID
 // In production, get this from authentication
@@ -16,14 +17,28 @@ export async function createWord(formData: {
   partOfSpeech: string[];
 }) {
   try {
-    await fetch(`http://localhost:3000/api/words`, {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore.toString();
+
+    const response = await fetch(`http://localhost:3000/api/words`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
+        Cookie: cookieHeader,
       },
       body: JSON.stringify({ ...formData }),
     });
-    
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        "Failed to create word - API response:",
+        response.status,
+        errorText,
+      );
+      throw new Error(`Failed to create word: ${response.status} ${errorText}`);
+    }
+
     revalidateTag("words");
     revalidateTag("date-stats");
   } catch (error) {
@@ -44,15 +59,27 @@ export async function updateWord(
   },
 ) {
   try {
-    await fetch(`http://localhost:3000/api/words/${id}`, {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore.toString();
+
+    const response = await fetch(`http://localhost:3000/api/words/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
+        Cookie: cookieHeader,
       },
       body: JSON.stringify({ ...formData }),
     });
-    // Record the update activity
-    const today = new Date().toISOString().slice(0, 10);
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        "Failed to update word - API response:",
+        response.status,
+        errorText,
+      );
+      throw new Error(`Failed to update word: ${response.status} ${errorText}`);
+    }
 
     revalidateTag("words");
     revalidateTag("date-stats");
@@ -64,9 +91,25 @@ export async function updateWord(
 
 export async function deleteWord(id: string) {
   try {
-    await fetch(`http://localhost:3000/api/words/${id}`, {
+    const cookieStore = await cookies();
+    const cookieHeader = cookieStore.toString();
+
+    const response = await fetch(`http://localhost:3000/api/words/${id}`, {
       method: "DELETE",
+      headers: {
+        Cookie: cookieHeader,
+      },
     });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error(
+        "Failed to delete word - API response:",
+        response.status,
+        errorText,
+      );
+      throw new Error(`Failed to delete word: ${response.status} ${errorText}`);
+    }
 
     revalidateTag("words");
   } catch (error) {
