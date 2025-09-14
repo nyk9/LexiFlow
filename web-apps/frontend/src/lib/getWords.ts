@@ -1,4 +1,5 @@
 import { Word } from "@/types/word";
+import { cookies } from "next/headers";
 
 export async function getWords(): Promise<Word[]> {
   try {
@@ -8,10 +9,19 @@ export async function getWords(): Promise<Word[]> {
         ? "http://localhost:3000" // Server-side: absolute URL
         : ""; // Client-side: relative URL
 
+    const headers: Record<string, string> = {};
+
+    // Add cookies for server-side authentication
+    if (typeof window === "undefined") {
+      const cookieStore = await cookies();
+      headers["Cookie"] = cookieStore.toString();
+    }
+
     const response = await fetch(`${baseUrl}/api/words`, {
       // Disable cache during development, enable revalidation tags for production
       cache: "no-store",
       next: { tags: ["words"] },
+      headers,
     });
 
     if (!response.ok) {
@@ -36,7 +46,17 @@ export async function getWordById(id: string): Promise<Word | null> {
     const baseUrl =
       typeof window === "undefined" ? "http://localhost:3000" : "";
 
-    const response = await fetch(`${baseUrl}/api/words/${id}`);
+    const headers: Record<string, string> = {};
+
+    // Add cookies for server-side authentication
+    if (typeof window === "undefined") {
+      const cookieStore = await cookies();
+      headers["Cookie"] = cookieStore.toString();
+    }
+
+    const response = await fetch(`${baseUrl}/api/words/${id}`, {
+      headers,
+    });
     if (!response.ok) {
       return null;
     }
