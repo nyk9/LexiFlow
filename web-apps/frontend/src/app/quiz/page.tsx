@@ -1,6 +1,8 @@
 import { getWords } from "@/lib/getWords";
 import { QuizClient } from "./quiz-client";
 
+export const dynamic = 'force-dynamic';
+
 export default async function QuizPage() {
   const words = await getWords();
 

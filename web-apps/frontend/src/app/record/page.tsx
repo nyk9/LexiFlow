@@ -1,6 +1,8 @@
 import { cookies } from "next/headers";
 import { RecordChart } from "./record-chart";
 
+export const dynamic = 'force-dynamic';
+
 interface DateRecord {
   date: string;
   add: number;

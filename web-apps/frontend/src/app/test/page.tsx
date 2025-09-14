@@ -1,6 +1,8 @@
 import WordList from "@/features/suggestionWord/components/word-list";
 import { Suspense } from "react";
 
+export const dynamic = 'force-dynamic';
+
 export default function ApiTest() {
   return (
     <div>
