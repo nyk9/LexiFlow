@@ -1,5 +1,6 @@
 "use server";
 
+import { BASE_API_URL } from "@/constants";
 import { db } from "./db";
 import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
@@ -20,7 +21,7 @@ export async function createWord(formData: {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
-    const response = await fetch(`http://localhost:3000/api/words`, {
+    const response = await fetch(`${BASE_API_URL}/words`, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -62,7 +63,7 @@ export async function updateWord(
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
-    const response = await fetch(`http://localhost:3000/api/words/${id}`, {
+    const response = await fetch(`${BASE_API_URL}/words/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -94,7 +95,7 @@ export async function deleteWord(id: string) {
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
-    const response = await fetch(`http://localhost:3000/api/words/${id}`, {
+    const response = await fetch(`${BASE_API_URL}/words/${id}`, {
       method: "DELETE",
       headers: {
         Cookie: cookieHeader,

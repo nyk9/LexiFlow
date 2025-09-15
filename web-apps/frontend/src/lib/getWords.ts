@@ -1,14 +1,9 @@
+import { BASE_API_URL } from "@/constants";
 import { Word } from "@/types/word";
 import { cookies } from "next/headers";
 
 export async function getWords(): Promise<Word[]> {
   try {
-    // Use absolute URL for server-side rendering, relative for client-side
-    const baseUrl =
-      typeof window === "undefined"
-        ? "http://localhost:3000" // Server-side: absolute URL
-        : ""; // Client-side: relative URL
-
     const headers: Record<string, string> = {};
 
     // Add cookies for server-side authentication
@@ -17,10 +12,12 @@ export async function getWords(): Promise<Word[]> {
       headers["Cookie"] = cookieStore.toString();
     }
 
-    const response = await fetch(`${baseUrl}/api/words`, {
-      // Disable cache during development, enable revalidation tags for production
-      cache: "no-store",
-      next: { tags: ["words"] },
+    const response = await fetch(`${BASE_API_URL}/words`, {
+      // ISR configuration: revalidate every 60 seconds
+      next: { 
+        revalidate: 60,
+        tags: ["words"] 
+      },
       headers,
     });
 
@@ -43,9 +40,6 @@ export async function getWords(): Promise<Word[]> {
 
 export async function getWordById(id: string): Promise<Word | null> {
   try {
-    const baseUrl =
-      typeof window === "undefined" ? "http://localhost:3000" : "";
-
     const headers: Record<string, string> = {};
 
     // Add cookies for server-side authentication
@@ -54,7 +48,11 @@ export async function getWordById(id: string): Promise<Word | null> {
       headers["Cookie"] = cookieStore.toString();
     }
 
-    const response = await fetch(`${baseUrl}/api/words/${id}`, {
+    const response = await fetch(`${BASE_API_URL}/words/${id}`, {
+      next: { 
+        revalidate: 300, // 5 minutes for individual words
+        tags: ["words", `word-${id}`] 
+      },
       headers,
     });
     if (!response.ok) {
@@ -69,17 +67,19 @@ export async function getWordById(id: string): Promise<Word | null> {
 }
 
 export async function getSuggestions(initialWords: Word[]) {
-  const baseUrl = typeof window === "undefined" ? "http://localhost:3000" : "";
-  const suggestions = await fetch(`${baseUrl}/api/suggestion-word/gemini/`, {
-    method: "POST",
-    headers: {
-      "Content-Type": "application/json",
+  const suggestions = await fetch(
+    `${BASE_API_URL}/suggestion-word/gemini/`,
+    {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      next: {
+        revalidate: 3600, // 1 hour for suggestions
+      },
+      body: JSON.stringify({ vocabulary: initialWords }),
     },
-    // next: {
-    //   revalidate: 60 * 60 * 24, // 24 hours
-    // },
-    body: JSON.stringify({ vocabulary: initialWords }),
-  });
+  );
 
   if (!suggestions.ok) {
     console.error(
