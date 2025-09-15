@@ -1,27 +1,10 @@
-import { auth } from "./auth";
-import { NextResponse } from "next/server";
+import NextAuth from "next-auth";
+import authConfig from "./auth.config";
 
-export default auth((req) => {
-  const { nextUrl } = req;
+export const { auth: middleware } = NextAuth(authConfig);
 
-  // Allow access to auth pages
-  if (nextUrl.pathname.startsWith("/auth/")) {
-    return NextResponse.next();
-  }
-
-  // Allow access to public API routes
-  if (nextUrl.pathname.startsWith("/api/auth")) {
-    return NextResponse.next();
-  }
-
-  // Protect other routes
-  if (!req.auth && !nextUrl.pathname.startsWith("/auth")) {
-    return NextResponse.redirect(new URL("/auth/signin", nextUrl));
-  }
-
-  return NextResponse.next();
-});
+export default middleware;
 
 export const config = {
-  matcher: ["/((?!_next|favicon.ico).*)"],
+  matcher: ["/((?!api|_next/static|_next/image|favicon.ico).*)"],
 };
