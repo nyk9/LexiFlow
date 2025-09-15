@@ -5,6 +5,7 @@ export const formSchema = z.object({
   translation: z.string().min(2).max(100),
   exampleSentence: z.string().min(2).max(1000),
   category: z.string(),
+  phonetic: z.string().min(1).max(50),
   partOfSpeech: z
     .array(z.string())
     .refine((value) => value.some((item) => item), {

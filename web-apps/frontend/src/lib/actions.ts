@@ -4,20 +4,16 @@ import { BASE_API_URL } from "@/constants";
 import { db } from "./db";
 import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
+import { auth } from "../../auth";
+import { WordFormData } from "@/types/forms";
 
-// For demo purposes, using a hardcoded user ID
-// In production, get this from authentication
-const DEMO_USER_ID = "demo-user-001";
-
-export async function createWord(formData: {
-  word: string;
-  meaning: string;
-  translation: string;
-  example?: string;
-  category: string;
-  partOfSpeech: string[];
-}) {
+export async function createWord(formData: WordFormData) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Unauthorized: User not authenticated");
+    }
+
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
@@ -48,18 +44,13 @@ export async function createWord(formData: {
   }
 }
 
-export async function updateWord(
-  id: string,
-  formData: {
-    word: string;
-    meaning: string;
-    translation: string;
-    example?: string;
-    category: string;
-    partOfSpeech: string[];
-  },
-) {
+export async function updateWord(id: string, formData: WordFormData) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Unauthorized: User not authenticated");
+    }
+
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
@@ -92,6 +83,11 @@ export async function updateWord(
 
 export async function deleteWord(id: string) {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Unauthorized: User not authenticated");
+    }
+
     const cookieStore = await cookies();
     const cookieHeader = cookieStore.toString();
 
@@ -121,12 +117,19 @@ export async function deleteWord(id: string) {
 
 export async function recordQuizActivity() {
   try {
+    const session = await auth();
+    if (!session?.user?.id) {
+      throw new Error("Unauthorized: User not authenticated");
+    }
+
+    const userId = session.user.id;
     const today = new Date().toISOString().slice(0, 10);
+    
     await db.dateRecord.upsert({
       where: {
         date_userId: {
           date: today,
-          userId: DEMO_USER_ID,
+          userId: userId,
         },
       },
       create: {
@@ -134,7 +137,7 @@ export async function recordQuizActivity() {
         add: 0,
         update: 0,
         quiz: 1,
-        userId: DEMO_USER_ID,
+        userId: userId,
       },
       update: {
         quiz: {

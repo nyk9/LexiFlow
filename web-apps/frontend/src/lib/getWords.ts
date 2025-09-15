@@ -3,6 +3,7 @@ import { Word } from "@/types/word";
 import { cookies } from "next/headers";
 import { auth } from "../../auth";
 import { db } from "@/lib/db";
+import { isProduction } from "@/lib/utils/environment";
 
 // Direct DB connection functions for production environment
 async function getWordsFromDB(): Promise<Word[]> {
@@ -119,7 +120,7 @@ async function getWordFromAPI(id: string): Promise<Word | null> {
 export async function getWords(): Promise<Word[]> {
   // Use direct DB connection in production to avoid Vercel auth issues
   // Use API calls in development for ISR benefits
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production') {
+  if (isProduction()) {
     return getWordsFromDB();
   } else {
     return getWordsFromAPI();
@@ -129,7 +130,7 @@ export async function getWords(): Promise<Word[]> {
 export async function getWordById(id: string): Promise<Word | null> {
   // Use direct DB connection in production to avoid Vercel auth issues
   // Use API calls in development for ISR benefits
-  if (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production') {
+  if (isProduction()) {
     return getWordFromDB(id);
   } else {
     return getWordFromAPI(id);
@@ -168,7 +169,7 @@ export async function getSuggestions(initialWords: Word[]) {
       );
       
       // In production, gracefully handle auth errors
-      if (suggestions.status === 401 && (process.env.NODE_ENV === 'production' || process.env.VERCEL_ENV === 'production')) {
+      if (suggestions.status === 401 && isProduction()) {
         console.warn("Authentication error in production - returning empty suggestions");
         return [];
       }

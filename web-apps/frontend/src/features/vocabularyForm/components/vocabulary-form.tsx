@@ -51,6 +51,7 @@ export default function AddVocabularyForm({
       translation: initialData?.translation || "",
       exampleSentence: initialData?.example || "",
       category: initialData?.category || "",
+      phonetic: initialData?.phonetic || "",
       partOfSpeech: initialData?.partOfSpeech || ([] as PartOfSpeech[]),
     },
   });
@@ -67,6 +68,7 @@ export default function AddVocabularyForm({
       translation,
       exampleSentence,
       category,
+      phonetic,
       partOfSpeech,
     } = value;
 
@@ -79,6 +81,7 @@ export default function AddVocabularyForm({
             translation,
             example: exampleSentence,
             category,
+            phonetic,
             partOfSpeech,
           });
           console.log("add_word が成功しました");
@@ -89,6 +92,7 @@ export default function AddVocabularyForm({
             translation,
             example: exampleSentence,
             category,
+            phonetic,
             partOfSpeech,
           });
         }
@@ -141,6 +145,20 @@ export default function AddVocabularyForm({
                   <FormLabel>単語</FormLabel>
                   <FormControl>
                     <Input placeholder="単語" {...field} />
+                  </FormControl>
+
+                  <FormMessage />
+                </FormItem>
+              )}
+            />
+            <FormField
+              control={form.control}
+              name="phonetic"
+              render={({ field }) => (
+                <FormItem className="space-y-6 p-1">
+                  <FormLabel>発音記号</FormLabel>
+                  <FormControl>
+                    <Input placeholder="発音記号" {...field} />
                   </FormControl>
 
                   <FormMessage />
