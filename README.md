@@ -58,54 +58,37 @@ LexiFlow is a comprehensive full-stack vocabulary learning web application built
 
 ```
 LexiFlow/
-├── frontend/                    # Next.js Frontend Application
+├── frontend/                     # Next.js Frontend (Web & Desktop UI)
 │   ├── src/
-│   │   ├── app/                # App Router pages and layouts
-│   │   │   ├── page.tsx        # Home page
-│   │   │   ├── layout.tsx      # Root layout
-│   │   │   ├── words/          # Word management pages
-│   │   │   │   ├── page.tsx    # Words list
-│   │   │   │   ├── new/        # Add new word
-│   │   │   │   └── [id]/       # Individual word pages
-│   │   │   └── dashboard/      # Analytics dashboard
-│   │   ├── components/         # React components
-│   │   │   ├── ui/             # Shadcn/ui components
-│   │   │   └── layout/         # Layout components
-│   │   ├── lib/                # Utilities and API client
-│   │   │   ├── api.ts          # API client functions
-│   │   │   ├── utils.ts        # Utility functions
-│   │   │   ├── validations.ts  # Zod schemas
-│   │   │   └── providers.tsx   # React Query provider
-│   │   └── types/              # TypeScript definitions
+│   │   ├── app/                  # App Router pages and layouts
+│   │   ├── components/           # Shared UI components (Button, Input, etc.)
+│   │   ├── features/             # Feature-specific modules
+│   │   │   └── words/
+│   │   │       ├── components/   # Components specific to 'words' feature
+│   │   │       └── hooks/        # Custom hooks for 'words' feature
+│   │   ├── lib/                  # Utilities and API client
+│   │   └── types/                # TypeScript definitions
+│   │       └── generated.ts      # Auto-generated types from Rust backend
+│   ├── src-tauri/                # Tauri core for desktop application
+│   │   ├── src/
+│   │   │   └── main.rs           # Desktop app entry point
+│   │   ├── Cargo.toml
+│   │   └── tauri.conf.json
 │   ├── package.json
-│   ├── tailwind.config.js
 │   ├── next.config.js
 │   └── tsconfig.json
-├── backend/                     # Rust API Server
+├── backend/                      # Rust API Server
 │   ├── src/
-│   │   ├── main.rs             # Application entry point
-│   │   ├── lib.rs              # Library root
-│   │   ├── models/             # Data models (Diesel)
-│   │   │   ├── word.rs         # Word model and schemas
-│   │   │   └── activity.rs     # Learning activity model
-│   │   ├── handlers/           # API route handlers
-│   │   │   ├── words.rs        # Word CRUD operations
-│   │   │   └── statistics.rs   # Statistics and analytics
-│   │   ├── database/           # Database configuration
-│   │   │   ├── connection.rs   # Connection pool setup
-│   │   │   └── schema.rs       # Generated Diesel schema
-│   │   ├── errors/             # Error handling
-│   │   ├── config/             # Configuration management
-│   │   └── utils/              # Utility functions
-│   ├── migrations/             # Database migrations
-│   │   ├── 2024-01-01-000001_create_words/
-│   │   ├── 2024-01-01-000002_create_categories/
-│   │   └── 2024-01-01-000003_create_learning_activities/
+│   │   ├── main.rs               # Application entry point
+│   │   ├── models/               # Data models (with ts-rs macros)
+│   │   ├── handlers/             # API route handlers
+│   │   ├── database/             # Database configuration
+│   │   └── errors/               # Error handling
+│   ├── migrations/               # Database migrations
 │   ├── Cargo.toml
-│   ├── Shuttle.toml
-│   └── diesel.toml
-├── CLAUDE.md                   # Project documentation and guidelines
-└── README.md                   # This file
+│   └── Shuttle.toml
+├── CLAUDE.md                     # This documentation file
+└── README.md                 # This file
 ```
 
 ## 🚦 Getting Started
