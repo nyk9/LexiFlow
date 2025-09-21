@@ -3,7 +3,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/layouts/header/theme-provider";
 import Header from "@/components/layouts/header/header";
-import { Toast } from "@radix-ui/react-toast";
 import { Toaster } from "@/components/ui/toaster";
 import { AuthSessionProvider } from "@/components/auth/session-provider";
 

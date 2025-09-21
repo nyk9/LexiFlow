@@ -1,6 +1,5 @@
 "use client";
 
-import { signIn } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import {
   Card,
@@ -10,8 +9,28 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Github } from "lucide-react";
+import { AuthAPI } from "@/lib/auth/auth-api";
+import { useAuth } from "@/components/auth/auth-provider";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
 
 export default function SignIn() {
+  const { login } = useAuth();
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  const handleGitHubSignIn = () => {
+    const redirectUri = `${window.location.origin}/auth/callback/github`;
+    const authUrl = AuthAPI.getGitHubAuthUrl(redirectUri);
+    window.location.href = authUrl;
+  };
+
+  const handleGoogleSignIn = () => {
+    const redirectUri = `${window.location.origin}/auth/callback/google`;
+    const authUrl = AuthAPI.getGoogleAuthUrl(redirectUri);
+    window.location.href = authUrl;
+  };
+
   return (
     <div className="flex min-h-screen items-center justify-center">
       <Card className="w-full max-w-md">
@@ -23,18 +42,20 @@ export default function SignIn() {
         </CardHeader>
         <CardContent className="space-y-4">
           <Button
-            onClick={() => signIn("github", { callbackUrl: "/" })}
+            onClick={handleGitHubSignIn}
             className="w-full"
             variant="outline"
+            disabled={loading}
           >
             <Github className="mr-2 h-4 w-4" />
             Continue with GitHub
           </Button>
 
           <Button
-            onClick={() => signIn("google", { callbackUrl: "/" })}
+            onClick={handleGoogleSignIn}
             className="w-full"
             variant="outline"
+            disabled={loading}
           >
             <svg className="mr-2 h-4 w-4" viewBox="0 0 24 24">
               <path

@@ -1,17 +1,17 @@
 "use client";
 
-import { useSession, signOut } from "next-auth/react";
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
+import { useAuth } from "./auth-provider";
 
 export function UserNav() {
-  const { data: session, status } = useSession();
+  const { user, loading, logout, isAuthenticated } = useAuth();
 
-  if (status === "loading") {
+  if (loading) {
     return <div className="px-4 py-2">Loading...</div>;
   }
 
-  if (!session) {
+  if (!isAuthenticated) {
     return (
       <Button asChild size="sm">
         <Link href="/auth/signin">Sign In</Link>
@@ -21,13 +21,14 @@ export function UserNav() {
 
   return (
     <div className="flex items-center gap-4">
-      <span className="text-sm text-muted-foreground">
-        {session.user?.email}
-      </span>
+      <span className="text-sm text-muted-foreground">{user?.email}</span>
       <Button
         variant="ghost"
         size="sm"
-        onClick={() => signOut({ callbackUrl: "/" })}
+        onClick={() => {
+          logout();
+          window.location.href = "/"; // ホームにリダイレクト
+        }}
       >
         Sign Out
       </Button>
