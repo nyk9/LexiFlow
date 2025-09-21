@@ -490,29 +490,193 @@ POST   /api/statistics          # Record learning activity
 GET    /health                  # Health check endpoint
 ```
 
+## Rust Backend Migration Plan - Updated 2025-09-17
+
+### Frontend Analysis & Backend Design
+
+**Migration Status**: Moving from Next.js MVP (completed) to full Rust backend implementation.
+
+#### 🔍 Frontend Schema Analysis (Prisma → Rust)
+
+**Existing Database Schema** (Neon PostgreSQL via Prisma):
+
+```sql
+-- Auth.js compatible user management  
+users (
+  id: String @id @default(cuid()),
+  name: String?,
+  email: String @unique,
+  emailVerified: DateTime?,
+  image: String?,
+  createdAt: DateTime @default(now()),
+  updatedAt: DateTime @updatedAt,
+  accounts: Account[],
+  sessions: Session[],
+  words: Word[],
+  dateRecords: DateRecord[]
+)
+
+-- Complete word metadata with user isolation
+words (
+  id: String @id @default(cuid()),
+  word: String,
+  meaning: String,
+  translation: String?,
+  partOfSpeech: String[],      # JSON array
+  phonetic: String?,
+  example: String?,
+  category: String?,
+  userId: String,              # Foreign key to users
+  user: User,
+  createdAt: DateTime @default(now()),
+  updatedAt: DateTime @updatedAt
+)
+
+-- Daily learning activity tracking
+date_records (
+  id: String @id @default(cuid()),
+  date: String,                # YYYY-MM-DD format
+  add: Int @default(0),        # Words added count
+  update: Int @default(0),     # Words updated count  
+  quiz: Int @default(0),       # Quiz sessions count
+  userId: String,
+  user: User,
+  createdAt: DateTime @default(now()),
+  updatedAt: DateTime @updatedAt,
+  @@unique([date, userId])     # One record per user per day
+)
+```
+
+#### 🦀 Rust Backend API Design
+
+**Complete API Specification**:
+
+```rust
+// === AUTHENTICATION ===
+POST   /api/auth/login         // JWT authentication
+POST   /api/auth/register      // User registration  
+GET    /api/auth/me           // Current user info
+
+// === VOCABULARY MANAGEMENT ===
+GET    /api/words             // User's word list (paginated, filtered)
+POST   /api/words             // Create new word
+GET    /api/words/:id         // Get specific word details
+PUT    /api/words/:id         // Update word
+DELETE /api/words/:id         // Delete word
+
+// === LEARNING ANALYTICS ===
+GET    /api/statistics        // Learning stats & streaks
+POST   /api/statistics/record // Record learning activity
+GET    /api/statistics/daily  // Daily activity breakdown
+
+// === AI FEATURES ===
+POST   /api/ai/suggestions    // AI word suggestions (Claude/Gemini)
+POST   /api/ai/quiz          // Generate vocabulary quiz
+POST   /api/ai/conversation  // Conversation practice (future)
+
+// === SYSTEM ===
+GET    /health               // Health check
+```
+
+#### 🗄️ Rust Data Models
+
+**Prisma-Compatible Rust Structs**:
+
+```rust
+// Auth.js compatible user model
+#[derive(sqlx::FromRow, Serialize, Deserialize)]
+pub struct User {
+    pub id: String,                    // cuid
+    pub email: String,        
+    pub name: Option<String>,
+    pub email_verified: Option<DateTime<Utc>>,
+    pub image: Option<String>,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+// Complete word model with metadata
+#[derive(sqlx::FromRow, Serialize, Deserialize)]
+pub struct Word {
+    pub id: String,                    // cuid
+    pub word: String,
+    pub meaning: String,
+    pub translation: Option<String>,
+    pub part_of_speech: Vec<String>,   // JSON array in PostgreSQL
+    pub phonetic: Option<String>,
+    pub example: Option<String>,
+    pub category: Option<String>,
+    pub user_id: String,               // Foreign key
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+// Learning activity tracking
+#[derive(sqlx::FromRow, Serialize, Deserialize)]
+pub struct DateRecord {
+    pub id: String,                    // cuid
+    pub date: String,                  // YYYY-MM-DD
+    pub add: i32,                     // Words added today
+    pub update: i32,                  // Words updated today
+    pub quiz: i32,                    // Quiz sessions today
+    pub user_id: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+```
+
+#### 🔧 Migration Strategy
+
+**Phase 1: Data Preservation**
+- ✅ **Disable migrations**: Comment out `sqlx::migrate!` to protect existing Neon data
+- ✅ **Schema compatibility**: Ensure Rust models match existing Prisma schema exactly
+- ✅ **Gradual rollout**: Implement endpoints one by one while keeping Next.js API active
+
+**Phase 2: API Implementation**
+- 🔄 **Authentication**: JWT token system compatible with Auth.js
+- 🔄 **CRUD Operations**: Full vocabulary management with user isolation
+- 🔄 **Statistics**: Learning analytics and progress tracking
+- 🔄 **AI Integration**: Claude/Gemini API for suggestions and quiz generation
+
+**Phase 3: Production Deployment**  
+- 🔄 **Environment Config**: Frontend switches API base URL
+- 🔄 **Data Validation**: Comprehensive input validation and error handling
+- 🔄 **Performance**: Query optimization and response caching
+- 🔄 **Monitoring**: Health checks and logging
+
+#### 📊 Feature Completeness Analysis
+
+**✅ Currently Implemented (Next.js)**:
+- User authentication (Auth.js)
+- Complete vocabulary CRUD
+- Learning activity tracking  
+- AI word suggestions (Claude)
+- Statistics dashboard
+
+**🔄 Missing for Rust Backend**:
+- JWT authentication system
+- User registration/login endpoints
+- Vocabulary CRUD with user isolation
+- Learning statistics API
+- AI integration endpoints
+- Quiz generation functionality
+
 #### 📋 Next Development Priorities
 
-1. **AI Conversation Features**:
-   - Integrate Gemini API for conversation practice
-   - Web Speech API for voice input/output
-   - Conversation session tracking and analytics
-   - Post-conversation vocabulary suggestions
+**Phase 1: Core Backend (Week 1-2)**:
+1. **Authentication System**: JWT-based auth compatible with existing users
+2. **Vocabulary API**: Complete CRUD with user isolation and validation
+3. **Statistics API**: Learning analytics and progress tracking
 
-2. **User Authentication**:
-   - JWT token authentication system
-   - User registration and login flows
-   - Multi-user support with user-specific vocabulary
+**Phase 2: AI Integration (Week 3-4)**:
+1. **AI Suggestions**: Claude/Gemini integration for word recommendations
+2. **Quiz Generation**: AI-powered vocabulary quizzes
+3. **Conversation Features**: Basic conversation practice framework
 
-3. **Enhanced Features**:
-   - Export vocabulary to various formats
-   - Import from external sources
-   - Spaced repetition learning system
-   - Difficulty-based word recommendations
-
-4. **Desktop Application**:
-   - Tauri desktop app optimization
-   - Offline functionality
-   - Native desktop integrations
+**Phase 3: Production Ready (Week 5+)**:
+1. **Performance Optimization**: Query optimization and caching
+2. **Monitoring & Logging**: Health checks and error tracking  
+3. **Deployment Pipeline**: Automated CI/CD with Shuttle.rs
 
 ### Technical Implementation Details
 

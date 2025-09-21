@@ -126,3 +126,5 @@ temp/
 # Claude IDE
 .claude/
 
+# playwright mcp
+.playwright-mcp/
