@@ -1,29 +1,63 @@
 "use server";
 
 import { BASE_API_URL } from "@/constants";
-import { db } from "./db";
 import { revalidateTag } from "next/cache";
 import { cookies } from "next/headers";
-import { auth } from "../../auth";
 import { WordFormData } from "@/types/forms";
+
+// Server Action用の認証ヘッダー取得関数
+async function getServerAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
+
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get("auth_token")?.value;
+
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
+  }
+
+  return headers;
+}
 
 export async function createWord(formData: WordFormData) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    // cookiesからアクセストークンを確認
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("lexiflow_access_token")?.value;
+
+    console.log("Access token available:", !!accessToken);
+    console.log(
+      "Access token (first 20 chars):",
+      accessToken?.substring(0, 20),
+    );
+
+    if (!accessToken) {
       throw new Error("Unauthorized: User not authenticated");
     }
 
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore.toString();
+    // Server Action用の認証ヘッダーを取得
+    const headers = await getServerAuthHeaders();
+    console.log("Auth headers prepared:", Object.keys(headers));
+
+    // Rustバックエンドの期待するフィールド名に変換
+    const wordData = {
+      word: formData.word,
+      meaning: formData.meaning,
+      translation: formData.translation || null,
+      part_of_speech: formData.partOfSpeech, // キャメルケース → スネークケース
+      phonetic: formData.phonetic || null,
+      example: formData.example || null,
+      category: formData.category || null,
+    };
+
+    console.log("Sending word data:", wordData);
 
     const response = await fetch(`${BASE_API_URL}/words`, {
       method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: cookieHeader,
-      },
-      body: JSON.stringify({ ...formData }),
+      headers,
+      body: JSON.stringify(wordData),
     });
 
     if (!response.ok) {
@@ -31,9 +65,15 @@ export async function createWord(formData: WordFormData) {
       console.error(
         "Failed to create word - API response:",
         response.status,
+        response.statusText,
         errorText,
       );
-      throw new Error(`Failed to create word: ${response.status} ${errorText}`);
+      console.error("Request URL:", `${BASE_API_URL}/words`);
+      console.error("Request headers:", headers);
+      console.error("Request body:", JSON.stringify(wordData));
+      throw new Error(
+        `Failed to create word: ${response.status} ${response.statusText} - ${errorText}`,
+      );
     }
 
     revalidateTag("words");
@@ -46,21 +86,32 @@ export async function createWord(formData: WordFormData) {
 
 export async function updateWord(id: string, formData: WordFormData) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    // cookiesからアクセストークンを確認
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("lexiflow_access_token")?.value;
+
+    if (!accessToken) {
       throw new Error("Unauthorized: User not authenticated");
     }
 
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore.toString();
+    // Server Action用の認証ヘッダーを取得
+    const headers = await getServerAuthHeaders();
+
+    // Rustバックエンドの期待するフィールド名に変換
+    const wordData = {
+      word: formData.word,
+      meaning: formData.meaning,
+      translation: formData.translation || null,
+      part_of_speech: formData.partOfSpeech, // キャメルケース → スネークケース
+      phonetic: formData.phonetic || null,
+      example: formData.example || null,
+      category: formData.category || null,
+    };
 
     const response = await fetch(`${BASE_API_URL}/words/${id}`, {
       method: "PUT",
-      headers: {
-        "Content-Type": "application/json",
-        Cookie: cookieHeader,
-      },
-      body: JSON.stringify({ ...formData }),
+      headers,
+      body: JSON.stringify(wordData),
     });
 
     if (!response.ok) {
@@ -83,19 +134,20 @@ export async function updateWord(id: string, formData: WordFormData) {
 
 export async function deleteWord(id: string) {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
+    // cookiesからアクセストークンを確認
+    const cookieStore = await cookies();
+    const accessToken = cookieStore.get("lexiflow_access_token")?.value;
+
+    if (!accessToken) {
       throw new Error("Unauthorized: User not authenticated");
     }
 
-    const cookieStore = await cookies();
-    const cookieHeader = cookieStore.toString();
+    // Server Action用の認証ヘッダーを取得
+    const headers = await getServerAuthHeaders();
 
     const response = await fetch(`${BASE_API_URL}/words/${id}`, {
       method: "DELETE",
-      headers: {
-        Cookie: cookieHeader,
-      },
+      headers,
     });
 
     if (!response.ok) {
@@ -115,40 +167,7 @@ export async function deleteWord(id: string) {
   }
 }
 
+// TODO: Rustバックエンドに移行後に再実装
 export async function recordQuizActivity() {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      throw new Error("Unauthorized: User not authenticated");
-    }
-
-    const userId = session.user.id;
-    const today = new Date().toISOString().slice(0, 10);
-    
-    await db.dateRecord.upsert({
-      where: {
-        date_userId: {
-          date: today,
-          userId: userId,
-        },
-      },
-      create: {
-        date: today,
-        add: 0,
-        update: 0,
-        quiz: 1,
-        userId: userId,
-      },
-      update: {
-        quiz: {
-          increment: 1,
-        },
-      },
-    });
-
-    revalidateTag("date-stats");
-  } catch (error) {
-    console.error("Failed to record quiz activity:", error);
-    throw new Error("Failed to record quiz activity");
-  }
+  //   // Rustバックエンドのstatistics APIを使用予定
 }

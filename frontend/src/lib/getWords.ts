@@ -1,65 +1,28 @@
 import { BASE_API_URL } from "@/constants";
 import { Word } from "@/types/word";
 import { cookies } from "next/headers";
-import { auth } from "../../auth";
-import { db } from "@/lib/db";
-import { isProduction } from "@/lib/utils/environment";
 
-// Direct DB connection functions for production environment
-async function getWordsFromDB(): Promise<Word[]> {
-  try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return [];
-    }
+// Server Component用の認証ヘッダー取得関数
+async function getServerAuthHeaders(): Promise<Record<string, string>> {
+  const headers: Record<string, string> = {
+    "Content-Type": "application/json",
+  };
 
-    const words = await db.word.findMany({
-      where: {
-        userId: session.user.id,
-      },
-      orderBy: {
-        createdAt: "desc",
-      },
-    });
-
-    return words;
-  } catch (error) {
-    console.error("Error fetching words from DB:", error);
-    return [];
+  const cookieStore = await cookies();
+  const accessToken = cookieStore.get('auth_token')?.value;
+  
+  if (accessToken) {
+    headers["Authorization"] = `Bearer ${accessToken}`;
   }
+
+  return headers;
 }
 
-async function getWordFromDB(id: string): Promise<Word | null> {
+// API-based functions for Rust backend
+async function getWords(): Promise<Word[]> {
   try {
-    const session = await auth();
-    if (!session?.user?.id) {
-      return null;
-    }
-
-    const word = await db.word.findFirst({
-      where: {
-        id: id,
-        userId: session.user.id,
-      },
-    });
-
-    return word;
-  } catch (error) {
-    console.error("Error fetching word from DB:", error);
-    return null;
-  }
-}
-
-// API-based functions for development environment
-async function getWordsFromAPI(): Promise<Word[]> {
-  try {
-    const headers: Record<string, string> = {};
-
-    // Add cookies for server-side authentication
-    if (typeof window === "undefined") {
-      const cookieStore = await cookies();
-      headers["Cookie"] = cookieStore.toString();
-    }
+    // Server Component用の認証ヘッダーを取得
+    const headers = await getServerAuthHeaders();
 
     const response = await fetch(`${BASE_API_URL}/words`, {
       // ISR configuration: revalidate every 60 seconds
@@ -87,15 +50,10 @@ async function getWordsFromAPI(): Promise<Word[]> {
   }
 }
 
-async function getWordFromAPI(id: string): Promise<Word | null> {
+async function getWordById(id: string): Promise<Word | null> {
   try {
-    const headers: Record<string, string> = {};
-
-    // Add cookies for server-side authentication
-    if (typeof window === "undefined") {
-      const cookieStore = await cookies();
-      headers["Cookie"] = cookieStore.toString();
-    }
+    // Server Component用の認証ヘッダーを取得
+    const headers = await getServerAuthHeaders();
 
     const response = await fetch(`${BASE_API_URL}/words/${id}`, {
       next: { 
@@ -117,37 +75,13 @@ async function getWordFromAPI(id: string): Promise<Word | null> {
   }
 }
 
-export async function getWords(): Promise<Word[]> {
-  // Use direct DB connection in production to avoid Vercel auth issues
-  // Use API calls in development for ISR benefits
-  if (isProduction()) {
-    return getWordsFromDB();
-  } else {
-    return getWordsFromAPI();
-  }
-}
-
-export async function getWordById(id: string): Promise<Word | null> {
-  // Use direct DB connection in production to avoid Vercel auth issues
-  // Use API calls in development for ISR benefits
-  if (isProduction()) {
-    return getWordFromDB(id);
-  } else {
-    return getWordFromAPI(id);
-  }
-}
+// Export the functions directly
+export { getWords, getWordById };
 
 export async function getSuggestions(initialWords: Word[]) {
   try {
-    const headers: Record<string, string> = {
-      "Content-Type": "application/json",
-    };
-
-    // Add cookies for server-side authentication
-    if (typeof window === "undefined") {
-      const cookieStore = await cookies();
-      headers["Cookie"] = cookieStore.toString();
-    }
+    // Server Component用の認証ヘッダーを取得
+    const headers = await getServerAuthHeaders();
 
     const suggestions = await fetch(
       `${BASE_API_URL}/suggestion-word/gemini/`,
@@ -168,9 +102,9 @@ export async function getSuggestions(initialWords: Word[]) {
         suggestions.statusText,
       );
       
-      // In production, gracefully handle auth errors
-      if (suggestions.status === 401 && isProduction()) {
-        console.warn("Authentication error in production - returning empty suggestions");
+      // Gracefully handle auth errors
+      if (suggestions.status === 401) {
+        console.warn("Authentication error - returning empty suggestions");
         return [];
       }
       

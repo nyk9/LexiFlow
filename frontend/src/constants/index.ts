@@ -1,4 +1,7 @@
-// Base URL for API calls (without /api suffix)
+// Rust backend URL configuration
+export const RUST_BACKEND_URL = process.env.NEXT_PUBLIC_RUST_BACKEND_URL || "http://127.0.0.1:8000";
+
+// Legacy Next.js API URL (for fallback)
 export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL || 
   (typeof window === "undefined" 
     ? process.env.VERCEL_URL 
@@ -6,5 +9,5 @@ export const BASE_URL = process.env.NEXT_PUBLIC_BASE_URL ||
       : "http://localhost:3000"
     : "");
 
-// Full API base URL
-export const BASE_API_URL = `${BASE_URL}/api`;
+// Use Rust backend for API calls
+export const BASE_API_URL = `${RUST_BACKEND_URL}/api`;
