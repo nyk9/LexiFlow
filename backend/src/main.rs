@@ -18,6 +18,9 @@ mod models;
 use models::AppState;
 
 use auth_middleware::auth::auth_middleware;
+use handlers::ai_handler::{
+    analyze_conversation_handler, vocabulary_help_handler, word_suggestions_handler,
+};
 use handlers::auth_handler::{get_current_user, github_oauth_callback, google_oauth_callback};
 use handlers::word_handler::{
     create_word_handler, delete_word_handler, get_word_handler, get_words_handler,
@@ -62,10 +65,15 @@ async fn main(
         .get("AUTH_GOOGLE_SECRET")
         .context("AUTH_GOOGLE_SECRET not found")?;
 
+    let gemini_api_key = secrets
+        .get("GEMINI_API_KEY")
+        .context("GEMINI_API_KEY not found")?;
+
     // Log that secrets were loaded successfully (without revealing the actual values)
     println!("✓ AUTH_SECRET loaded");
     println!("✓ GitHub OAuth credentials loaded");
     println!("✓ Google OAuth credentials loaded");
+    println!("✓ Gemini API key loaded");
 
     // データベース接続プールを作成
     let pool = sqlx::PgPool::connect(&connection_string)
@@ -86,6 +94,7 @@ async fn main(
         github_client_secret,
         google_client_id,
         google_client_secret,
+        gemini_api_key,
     );
 
     // CORS設定
@@ -114,6 +123,12 @@ async fn main(
                 .put(update_word_handler)
                 .delete(delete_word_handler),
         )
+        .route(
+            "/api/conversation-analysis",
+            post(analyze_conversation_handler),
+        )
+        .route("/api/vocabulary-help", post(vocabulary_help_handler))
+        .route("/api/word-suggestions", post(word_suggestions_handler))
         .layer(from_fn_with_state(app_state.clone(), auth_middleware));
 
     let router = Router::new()
