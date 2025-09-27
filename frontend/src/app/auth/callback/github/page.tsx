@@ -3,23 +3,26 @@
 import { useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { AuthAPI } from "@/lib/auth/auth-api";
-import { useAuth } from "@/components/auth/auth-provider";
+import { handleOAuthCallback } from "@/lib/auth";
 
 export default function GitHubCallback() {
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { login } = useAuth();
   const [error, setError] = useState<string | null>(null);
+  const [isProcessing, setIsProcessing] = useState(false);
 
   useEffect(() => {
-    const handleCallback = async () => {
+    const processCallback = async () => {
+      // Prevent multiple executions
+      if (isProcessing) return;
+      setIsProcessing(true);
+
       try {
         const code = searchParams.get("code");
         const error = searchParams.get("error");
-        const state = searchParams.get("state");
+        const state = searchParams.get("state") || "";
 
         console.log("GitHub callback params:", { code, error, state });
-        console.log("Current URL:", window.location.href);
 
         if (error) {
           setError(`OAuth error: ${error}`);
@@ -31,24 +34,23 @@ export default function GitHubCallback() {
           return;
         }
 
-        const redirectUri = `${window.location.origin}/auth/callback/github`;
-        console.log("Using redirect URI:", redirectUri);
+        // Use the auth library's OAuth handler
+        const result = await handleOAuthCallback('github', code, state);
 
-        const requestData = { code, redirect_uri: redirectUri };
-        console.log("Sending request to backend:", requestData);
-
-        const response = await AuthAPI.githubOAuth(requestData);
-
-        await login(response.access_token);
-        router.push("/");
+        if (result.success) {
+          console.log("OAuth success, redirecting to home");
+          router.push("/");
+        } else {
+          setError(result.error || "Authentication failed");
+        }
       } catch (err) {
         console.error("GitHub OAuth error:", err);
         setError(err instanceof Error ? err.message : "Unknown error occurred");
       }
     };
 
-    handleCallback();
-  }, [searchParams, login, router]);
+    processCallback();
+  }, [searchParams, router, isProcessing]);
 
   if (error) {
     return (

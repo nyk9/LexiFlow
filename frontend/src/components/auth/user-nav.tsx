@@ -2,12 +2,12 @@
 
 import { Button } from "@/components/ui/button";
 import Link from "next/link";
-import { useAuth } from "./auth-provider";
+import { useAuth } from "@/hooks/useAuth";
 
 export function UserNav() {
-  const { user, loading, logout, isAuthenticated } = useAuth();
+  const { user, isLoading, logout, isAuthenticated } = useAuth();
 
-  if (loading) {
+  if (isLoading) {
     return <div className="px-4 py-2">Loading...</div>;
   }
 

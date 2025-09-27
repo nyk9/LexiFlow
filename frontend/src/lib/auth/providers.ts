@@ -39,6 +39,11 @@ export function validateState(receivedState: string): boolean {
   const storedState = sessionStorage.getItem('oauth_state');
   sessionStorage.removeItem('oauth_state');
   
+  // If no state was stored and none was received, allow it (for backward compatibility)
+  if (!storedState && !receivedState) {
+    return true;
+  }
+  
   return storedState === receivedState;
 }
 

@@ -21,14 +21,14 @@ export const authConfig: AuthConfig = {
   providers: {
     github: {
       clientId:
-        process.env.NEXT_PUBLIC_GITHUB_CLIENT_ID ||
+        process.env.NEXT_PUBLIC_GITHUB_ID ||
         process.env.AUTH_GITHUB_ID ||
         "",
       redirectUri: getRedirectUri("github"),
     },
     google: {
       clientId:
-        process.env.NEXT_PUBLIC_GOOGLE_CLIENT_ID ||
+        process.env.NEXT_PUBLIC_GOOGLE_ID ||
         process.env.AUTH_GOOGLE_ID ||
         "",
       redirectUri: getRedirectUri("google"),

@@ -12,6 +12,22 @@ export function useAuth() {
     const currentUser = getCurrentUser();
     setUser(currentUser);
     setIsLoading(false);
+    
+    // Listen for storage changes (when session is created/destroyed)
+    const handleStorageChange = () => {
+      const updatedUser = getCurrentUser();
+      setUser(updatedUser);
+    };
+    
+    window.addEventListener('storage', handleStorageChange);
+    
+    // Also check every 5 seconds for session changes
+    const interval = setInterval(handleStorageChange, 5000);
+    
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+      clearInterval(interval);
+    };
   }, []);
 
   const logout = () => {

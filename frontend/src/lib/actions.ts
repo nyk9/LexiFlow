@@ -12,7 +12,7 @@ async function getServerAuthHeaders(): Promise<Record<string, string>> {
   };
 
   const cookieStore = await cookies();
-  const accessToken = cookieStore.get("auth_token")?.value;
+  const accessToken = cookieStore.get("lexiflow_access_token")?.value;
 
   if (accessToken) {
     headers["Authorization"] = `Bearer ${accessToken}`;
