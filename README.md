@@ -1,31 +1,31 @@
-# LexiFlow - Modern Vocabulary Learning Application
+# LexiFlow - AI-Powered English Vocabulary Learning Platform
 
-LexiFlow is a comprehensive full-stack vocabulary learning web application built with modern technologies. It provides powerful word management, persistent data storage, learning progress tracking, and comprehensive CRUD operations for vocabulary building.
+LexiFlow is a comprehensive full-stack English learning application that combines vocabulary collection with AI-powered conversation practice. Built with modern technologies including Rust backend, Next.js frontend, and Tauri desktop integration.
 
 ## 🚀 Features
 
 ### Core Functionality
 
-- **Word Management**: Create, read, update, and delete vocabulary entries
-- **Advanced Search**: Real-time search across words, meanings, and translations
-- **Categorization**: Organize words by categories (Business, Technology, Academic, etc.)
-- **Learning Progress**: Track daily activities and learning streaks
-- **Statistics Dashboard**: Visualize learning progress with comprehensive analytics
-- **Responsive Design**: Mobile-first design that works on all devices
+- **Vocabulary Management**: Complete CRUD operations for vocabulary entries with rich metadata
+- **AI Word Suggestions**: Intelligent vocabulary recommendations using Google Gemini AI
+- **GitHub OAuth Authentication**: Secure user authentication and session management
+- **Real-time Search**: Advanced filtering and search across all word properties
+- **Learning Analytics**: Comprehensive progress tracking and statistics dashboard
+- **Cross-platform Support**: Web application with Tauri desktop integration
 
-### Word Features
+### Vocabulary Features
 
-- **Rich Word Data**: Word, meaning, translation, category, part of speech, examples
-- **Validation**: Comprehensive data validation on both frontend and backend
-- **Filtering**: Filter words by category, search terms, and more
-- **Pagination**: Efficient pagination for large vocabulary collections
+- **Rich Metadata**: Word, meaning, translation, category, part of speech, phonetics, examples
+- **Smart Categorization**: Organize by Business, Technology, Academic, and custom categories
+- **AI-Powered Suggestions**: Get contextual vocabulary recommendations based on your learning progress
+- **Instant Search**: Real-time filtering across words, meanings, and translations
+- **Bulk Operations**: Efficient management of large vocabulary collections
 
-### Analytics & Tracking
+### AI Integration
 
-- **Learning Statistics**: Total words, category distribution, learning streaks
-- **Daily Activities**: Track and record learning sessions
-- **Progress Visualization**: Charts and metrics for learning insights
-- **Recent Activity**: View recently added words and activities
+- **Gemini AI Integration**: Powered by Google's Gemini API for intelligent word suggestions
+- **Contextual Learning**: AI analyzes your current vocabulary to suggest relevant new words
+- **Natural Language Processing**: Advanced text processing for meaningful vocabulary recommendations
 
 ## 🛠 Technology Stack
 
@@ -40,19 +40,20 @@ LexiFlow is a comprehensive full-stack vocabulary learning web application built
 
 ### Backend
 
-- **Language**: Rust
-- **Framework**: Axum 0.7+ for web server
-- **Database**: PostgreSQL 15+ with Diesel ORM
-- **Deployment**: Shuttle.rs platform
-- **Authentication**: JWT tokens (ready for future implementation)
-- **Validation**: Validator crate for data validation
+- **Language**: Rust with type safety and performance
+- **Framework**: Axum 0.7+ web framework with async support
+- **Database**: PostgreSQL 15+ with Diesel ORM for type-safe queries
+- **AI Integration**: Google Gemini AI API for vocabulary suggestions
+- **Authentication**: JWT-based authentication with GitHub OAuth
+- **Deployment**: Shuttle.rs platform for Rust applications
+- **Validation**: Comprehensive request validation and error handling
 
-### Database
+### Additional Technologies
 
-- **PostgreSQL**: Primary database with full ACID compliance
-- **Diesel ORM**: Type-safe database operations
-- **Migrations**: Automated database schema management
-- **Indexing**: Optimized queries with proper indexing
+- **Authentication**: GitHub OAuth 2.0 with JWT token management
+- **AI Services**: Google Gemini AI for natural language processing
+- **Desktop App**: Tauri 2.0 for cross-platform desktop application
+- **Deployment**: Shuttle.rs (backend) and Vercel (frontend)
 
 ## 📁 Project Structure
 
@@ -87,32 +88,34 @@ LexiFlow/
 │   ├── migrations/               # Database migrations
 │   ├── Cargo.toml
 │   └── Shuttle.toml
-├── CLAUDE.md                     # This documentation file
-└── README.md                 # This file
+├── CLAUDE.md                     # Project requirements and development progress
+└── README.md                     # Project setup and usage documentation
 ```
 
 ## 🚦 Getting Started
 
 ### Prerequisites
 
-- **Node.js** 18+ and npm/yarn
+- **Node.js** 18+ and npm
 - **Rust** 1.70+ with Cargo
-- **PostgreSQL** 15+
-- **Git** for version control
+- **PostgreSQL** 15+ (or use Shuttle.rs managed database)
+- **GitHub OAuth App** for authentication
+- **Google Gemini API Key** for AI features
 
-### Database Setup
+### Environment Setup
 
-1. Install PostgreSQL and create a database:
+1. **GitHub OAuth Application**:
+   - Create a GitHub OAuth App at https://github.com/settings/applications/new
+   - Set callback URL to `http://localhost:3000/auth/callback/github`
+   - Note your Client ID and Client Secret
 
-```bash
-createdb lexiflow
-```
+2. **Google Gemini API**:
+   - Get API key from Google AI Studio
+   - Enable the Gemini API in your Google Cloud Console
 
-2. Set up the database URL in your environment:
-
-```bash
-export DATABASE_URL="postgresql://username:password@localhost/lexiflow"
-```
+3. **Database** (Optional for local development):
+   - LexiFlow can use Shuttle.rs managed PostgreSQL
+   - For local development, install PostgreSQL and create database
 
 ### Backend Setup
 
@@ -122,19 +125,23 @@ export DATABASE_URL="postgresql://username:password@localhost/lexiflow"
 cd backend
 ```
 
-2. Install Diesel CLI:
+2. Create environment file:
 
 ```bash
-cargo install diesel_cli --no-default-features --features postgres
+# .env
+GEMINI_API_KEY=your_gemini_api_key_here
+JWT_SECRET=your_jwt_secret_key_here
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
 ```
 
-3. Run database migrations:
+3. Run with Shuttle (recommended):
 
 ```bash
-diesel migration run
+cargo shuttle run --port 8000
 ```
 
-4. Install dependencies and run the server:
+Or run locally:
 
 ```bash
 cargo run
@@ -150,13 +157,24 @@ The API server will start on `http://localhost:8000`
 cd frontend
 ```
 
-2. Install dependencies:
+2. Create environment file:
+
+```bash
+# .env.local
+NEXT_PUBLIC_API_URL=http://localhost:8000
+GITHUB_CLIENT_ID=your_github_client_id
+GITHUB_CLIENT_SECRET=your_github_client_secret
+NEXTAUTH_URL=http://localhost:3000
+NEXTAUTH_SECRET=your_nextauth_secret
+```
+
+3. Install dependencies:
 
 ```bash
 npm install
 ```
 
-3. Start the development server:
+4. Start the development server:
 
 ```bash
 npm run dev
@@ -164,25 +182,30 @@ npm run dev
 
 The web application will be available at `http://localhost:3000`
 
-## 🔧 Configuration
+### Desktop App (Tauri)
 
-### Environment Variables
-
-**Frontend (.env.local):**
+To run as a desktop application:
 
 ```bash
-NEXT_PUBLIC_API_URL=http://localhost:8000
-NEXT_PUBLIC_APP_NAME=LexiFlow
+cd frontend
+npm run tauri dev
 ```
 
-**Backend (.env):**
+## 🔧 Key Features
 
-```bash
-DATABASE_URL=postgresql://postgres:password@localhost/lexiflow
-RUST_LOG=debug
-JWT_SECRET=your-secure-jwt-secret-key
-CORS_ORIGIN=http://localhost:3000
-```
+### Authentication Flow
+
+1. **GitHub OAuth**: Secure authentication using GitHub accounts
+2. **JWT Tokens**: Stateless authentication with JWT token management
+3. **Session Persistence**: Automatic session restoration and management
+4. **Protected Routes**: Secure API endpoints with authentication middleware
+
+### AI-Powered Learning
+
+1. **Smart Suggestions**: AI analyzes your vocabulary to suggest relevant new words
+2. **Contextual Learning**: Get word recommendations based on your learning patterns
+3. **Natural Language Processing**: Advanced AI understanding of vocabulary context
+4. **Personalized Experience**: Tailored suggestions for your English proficiency level
 
 ## 📡 API Endpoints
 
@@ -197,11 +220,20 @@ DELETE /api/words/:id           # Delete word
 GET    /api/categories          # List all categories
 ```
 
-### Statistics & Analytics
+### AI Integration
 
 ```
-GET    /api/statistics          # Get learning statistics
-POST   /api/statistics          # Record learning activity
+POST   /api/ai/word-suggestions      # Get AI-powered vocabulary suggestions
+POST   /api/ai/conversation-analysis # Analyze conversation for vocabulary gaps
+POST   /api/ai/vocabulary-help       # Get help with specific vocabulary questions
+```
+
+### Authentication
+
+```
+POST   /api/auth/github         # GitHub OAuth authentication
+GET    /api/auth/me            # Get current user information
+POST   /api/auth/logout        # Logout and invalidate session
 ```
 
 ### Health Check
@@ -210,98 +242,99 @@ POST   /api/statistics          # Record learning activity
 GET    /health                  # Health check endpoint
 ```
 
-## 🗄 Database Schema
+## 🎯 Current Implementation Status
 
-### Tables
+### ✅ Fully Functional Features
 
-**words**
+- **Complete Authentication System**: GitHub OAuth with JWT token management
+- **Vocabulary Management**: Full CRUD operations with rich metadata
+- **AI Integration**: Google Gemini AI for intelligent word suggestions
+- **Real-time Search**: Advanced filtering and search capabilities
+- **Learning Analytics**: Progress tracking and statistics dashboard
+- **Responsive UI**: Modern design with Tailwind CSS and Shadcn/ui
+- **Cross-platform**: Web application with Tauri desktop support
 
-- `id` (UUID, Primary Key)
-- `word` (VARCHAR, NOT NULL)
-- `meaning` (TEXT, NOT NULL)
-- `translation` (TEXT, NOT NULL)
-- `category` (VARCHAR, NOT NULL)
-- `part_of_speech` (VARCHAR, NOT NULL)
-- `example` (TEXT, NULLABLE)
-- `created_at` (TIMESTAMPTZ)
-- `updated_at` (TIMESTAMPTZ)
+### 🔧 Technical Achievements
 
-**categories**
+- **Type-safe Architecture**: Rust backend with TypeScript frontend
+- **Production-ready Deployment**: Shuttle.rs backend hosting
+- **Modern Development Stack**: Latest versions of all frameworks
+- **Comprehensive Error Handling**: Robust error management throughout
+- **Performance Optimized**: Efficient database queries and caching
 
-- `id` (UUID, Primary Key)
-- `name` (VARCHAR, UNIQUE, NOT NULL)
-- `description` (TEXT, NULLABLE)
-- `created_at` (TIMESTAMPTZ)
+## 🚀 Quick Start
 
-**learning_activities**
+1. **Clone the repository**:
+```bash
+git clone <repository-url>
+cd LexiFlow
+```
 
-- `id` (UUID, Primary Key)
-- `activity_type` (VARCHAR, NOT NULL)
-- `date` (DATE, NOT NULL)
-- `count` (INTEGER, NOT NULL)
-- `created_at` (TIMESTAMPTZ)
+2. **Set up environment variables** (see Environment Setup section above)
 
-## 🏗 Development
-
-### Adding New Features
-
-1. **Backend Changes**:
-   - Add new models in `src/models/`
-   - Create handlers in `src/handlers/`
-   - Update routes in `src/main.rs`
-   - Add migrations if needed
-
-2. **Frontend Changes**:
-   - Add new pages in `src/app/`
-   - Create components in `src/components/`
-   - Update API client in `src/lib/api.ts`
-   - Add TypeScript types in `src/types/`
-
-### Code Quality
-
-- **Rust**: Use `cargo fmt` and `cargo clippy` for code formatting and linting
-- **TypeScript**: Use `npm run lint` and `npm run type-check`
-- **Database**: Always create migrations for schema changes
-
-## 🚀 Deployment
-
-### Backend (Shuttle.rs)
-
+3. **Start the backend**:
 ```bash
 cd backend
-cargo shuttle deploy
+cargo shuttle run --port 8000
 ```
 
-### Frontend (Vercel)
-
+4. **Start the frontend**:
 ```bash
 cd frontend
-vercel deploy
+npm install
+npm run dev
 ```
 
-## 🤝 Contributing
+5. **Access the application**:
+   - Web: http://localhost:3000
+   - Desktop: `npm run tauri dev`
 
-1. Fork the repository
-2. Create a feature branch (`git checkout -b feature/amazing-feature`)
-3. Commit your changes (`git commit -m 'Add amazing feature'`)
-4. Push to the branch (`git push origin feature/amazing-feature`)
-5. Open a Pull Request
+## 🛠 Development Commands
 
-## 📝 License
+### Backend
+```bash
+cargo shuttle run --port 8000    # Run backend server
+cargo check                      # Check code compilation
+cargo clippy                     # Lint code
+cargo fmt                        # Format code
+```
 
-This project is licensed under the MIT License - see the LICENSE file for details.
+### Frontend
+```bash
+npm run dev                       # Start development server
+npm run build                     # Build for production
+npm run lint                      # Lint TypeScript/React
+npm run tauri dev                 # Run desktop app
+```
 
-## 🙏 Acknowledgments
+## 📋 Project Features Overview
 
-- Built with modern web technologies and best practices
-- Inspired by the need for effective vocabulary learning tools
-- Uses the power of Rust for backend performance and safety
-- Leverages Next.js for optimal frontend user experience
+### Authentication & Security
+- ✅ GitHub OAuth 2.0 integration
+- ✅ JWT token-based authentication
+- ✅ Secure session management
+- ✅ Protected API endpoints
 
-## 📞 Support
+### Vocabulary Management
+- ✅ Complete CRUD operations
+- ✅ Rich word metadata (translation, phonetics, examples)
+- ✅ Category-based organization
+- ✅ Real-time search and filtering
+- ✅ Data validation and error handling
 
-For support, please open an issue in the GitHub repository or contact the development team.
+### AI Integration
+- ✅ Google Gemini AI integration
+- ✅ Intelligent word suggestions
+- ✅ Contextual vocabulary recommendations
+- ✅ Natural language processing capabilities
+
+### Technical Stack
+- ✅ Rust backend with Axum framework
+- ✅ Next.js frontend with TypeScript
+- ✅ PostgreSQL database with type-safe queries
+- ✅ Tauri desktop application support
+- ✅ Modern UI with Tailwind CSS and Shadcn/ui
 
 ---
 
-**LexiFlow** - Empowering language learners with modern technology! 🌟
+**LexiFlow** - Advanced AI-powered English vocabulary learning platform built with modern full-stack technologies! 🚀
