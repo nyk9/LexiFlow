@@ -15,6 +15,8 @@ pub struct AppState {
     pub google_client_id: String,
     /// Google OAuth client secret
     pub google_client_secret: String,
+    /// Gemini API Key
+    pub gemini_api_key: String,
 }
 
 impl AppState {
@@ -25,6 +27,7 @@ impl AppState {
         github_client_secret: String,
         google_client_id: String,
         google_client_secret: String,
+        gemini_api_key: String,
     ) -> Self {
         Self {
             pool,
@@ -33,6 +36,7 @@ impl AppState {
             github_client_secret,
             google_client_id,
             google_client_secret,
+            gemini_api_key,
         }
     }
 }
