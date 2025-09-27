@@ -4,10 +4,10 @@
   "version": "0.1.0",
   "identifier": "com.lexiflow.app",
   "build": {
-    "frontendDist": "../out",
+    "frontendDist": "../.next",
     "devUrl": "http://localhost:3000",
     "beforeDevCommand": "pnpm dev",
-    "beforeBuildCommand": "pnpm build:tauri"
+    "beforeBuildCommand": "pnpm build"
   },
   "app": {
     "windows": [
@@ -28,10 +28,12 @@
   },
   "plugins": {
     "deep-link": {
-      "mobile": {
-        "scheme": "lexiflow",
-        "host": "oauth"
-      },
+      "mobile": [
+        {
+          "schemes": ["lexiflow"],
+          "host": "oauth"
+        }
+      ],
       "desktop": {
         "schemes": ["lexiflow"]
       }

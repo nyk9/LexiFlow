@@ -14,6 +14,9 @@ import Link from "next/link";
 import { Button } from "@/components/ui/button";
 import { Loader2, Plus, Check } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { BASE_API_URL } from "@/constants";
+import { getAuthHeaders } from "@/lib/auth-headers";
+import { getSession } from "@/lib/auth";
 
 interface SuggestionWordProps {
   initialWords: Word[];
@@ -31,15 +34,31 @@ export function SuggestionWord({ initialWords }: SuggestionWordProps) {
     setLoading(true);
     const recent_five_words = initialWords.slice(-5);
     try {
-      const response = await fetch("/api/suggestion-word/gemini/", {
+      // Debug session state
+      const session = getSession();
+      console.log("Current session:", session);
+      console.log("Session valid:", !!session);
+      
+      // Convert vocabulary to a user input format that the backend expects
+      const vocabularyList = recent_five_words.map(word => 
+        `${word.word} (${word.translation})`
+      ).join(', ');
+      
+      const requestBody = {
+        user_input: `I want to expand my English vocabulary. I currently know these words: ${vocabularyList}. Please suggest new words that would help me improve my English skills.`,
+        conversation_context: "English vocabulary learning session"
+      };
+
+      const response = await fetch(`${BASE_API_URL}/word-suggestions`, {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ vocabulary: recent_five_words }),
+        headers: getAuthHeaders(),
+        body: JSON.stringify(requestBody),
       });
 
       if (!response.ok) {
+        if (response.status === 401) {
+          throw new Error("認証が必要です。ログインしてください。");
+        }
         throw new Error(`API responded with status: ${response.status}`);
       }
 
