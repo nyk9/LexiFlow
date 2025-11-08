@@ -340,11 +340,11 @@ To manage API costs and improve response times, especially for AI-related endpoi
 5. ✅ **Create vocabulary management MVP**
 6. ✅ **Integrate Gemini API for conversation features**
 
-## Development Progress - Updated 2025-08-12
+## Development Progress - Updated 2025-11-08
 
 ### Current Implementation Status
 
-**Phase 1 MVP Progress**: Currently developing core vocabulary and AI suggestion features
+**Phase 1 MVP Progress**: Core vocabulary features complete, AI conversation functionality implemented
 
 #### ✅ Completed Features
 
@@ -388,37 +388,82 @@ To manage API costs and improve response times, especially for AI-related endpoi
 
 **Authentication System**:
 
-- Auth.js integration (planned)
-- User session management (planned)
+- ✅ Auth.js (Next-Auth 5.0) integration complete
+- ✅ JWT-based session management
+- ✅ Prisma Adapter for database integration
+- ✅ Production-ready authentication on Vercel
+
+**AI Conversation Features** (NEW - 2025-11-08):
+
+- ✅ Real-time AI conversation with Gemini API
+- ✅ Web Speech API integration for voice input/output
+- ✅ Speech recognition (English) with live transcription
+- ✅ Text-to-speech for AI responses
+- ✅ Dual input modes: voice and text
+- ✅ Conversation session management
+- ✅ Session start/end API endpoints
+- ✅ Message history tracking
+- ✅ Responsive conversation UI with chat bubbles
+- ✅ Loading and error states
+
+**Post-Conversation Vocabulary Suggestions** (NEW - 2025-11-08):
+
+- ✅ AI-powered conversation analysis with Gemini API
+- ✅ Contextual vocabulary gap detection
+- ✅ Swipeable card UI for word suggestions
+- ✅ Touch and mouse gesture support
+- ✅ One-tap word addition to collection
+- ✅ Conversation context display for each suggestion
+- ✅ Audio pronunciation feature
+- ✅ Review summary with acceptance statistics
+- ✅ Automatic suggestion status tracking
+
+**Conversation Analytics** (NEW - 2025-11-08):
+
+- ✅ Topic extraction and progression tracking
+- ✅ Skills assessment (grammar, vocabulary, fluency)
+- ✅ Linguistic complexity analysis
+- ✅ Personalized feedback in Japanese
+- ✅ Database persistence for all metrics
+
+**Conversation Database Schema**:
+
+- ✅ ConversationSession table
+- ✅ ConversationTopic table
+- ✅ LinguisticAnalysis table
+- ✅ SkillsAssessment table
+- ✅ VocabularySuggestion table
 
 #### 🚧 In Progress
 
-**API Architecture**:
+**Enhanced Conversation Features**:
 
-- OpenAPI contract definition (planned)
-- Structured API endpoint documentation (planned)
+- Mid-conversation vocabulary help mode (tutor mode)
+- Real-time vocabulary question detection
+- Conversation analytics visualization
+- Performance metrics dashboard
 
-#### 📋 Next Development Priorities
+#### 📋 Next Development Priorities (Phase 1 Completion)
 
-1. **User Authentication**:
-   - Implement Auth.js with JWT tokens
-   - User registration and login flows
-   - Session-based vocabulary access
+1. **Mid-Conversation Vocabulary Mode**:
+   - Vocabulary question detection
+   - Tutor mode with detailed explanations
+   - Resume conversation functionality
 
-2. **Conversation Features**:
-   - Web Speech API integration for voice input
-   - Real-time AI conversation interface
-   - Conversation session tracking
+2. **Conversation Analytics Visualization**:
+   - Dashboard showing conversation history
+   - Skills progress charts
+   - Topic distribution analysis
+   - Vocabulary acquisition tracking
 
-3. **Enhanced Vocabulary Features**:
-   - Add new words from suggestions
-   - Edit existing vocabulary entries
-   - Category management system
+3. **Enhanced Learning Features**:
+   - Spaced repetition for conversation-learned words
+   - Review mode for past conversation vocabulary
+   - Difficulty adjustment based on performance
 
-4. **Progress Analytics**:
-   - Learning session tracking
-   - Progress visualization
-   - Conversation analytics integration
+4. **API Architecture**:
+   - OpenAPI contract definition
+   - Documentation for Rust migration readiness
 
 ### Technical Implementation Details
 
@@ -435,10 +480,48 @@ To manage API costs and improve response times, especially for AI-related endpoi
 **API Endpoints Implemented**:
 
 ```
+# Vocabulary Suggestions
 POST /api/suggestion-word/gemini/
 - Generates AI vocabulary suggestions based on existing words
 - Implements intelligent caching and error handling
 - Returns structured JSON with recommendations and learning advice
+
+# Conversation Management
+POST /api/conversation/session
+- Create new conversation session
+- Returns sessionId and startedAt timestamp
+
+GET /api/conversation/session
+- Get user's recent conversation sessions (last 20)
+- Includes related topics, analysis, and vocabulary suggestions
+
+PUT /api/conversation/session/[id]
+- End conversation session
+- Calculates duration and updates endedAt
+
+GET /api/conversation/session/[id]
+- Get specific conversation session details
+- Includes full analytics and suggestions
+
+# AI Chat
+POST /api/conversation/chat
+- Send message and receive AI response
+- Context-aware conversation with history
+- B2-level English practice with natural dialogue
+
+# Conversation Analysis
+POST /api/conversation/analyze
+- Analyze conversation for vocabulary gaps
+- Generate contextual word suggestions
+- Calculate skills assessment scores
+- Extract topics and linguistic metrics
+
+# Vocabulary Suggestions
+GET /api/conversation/suggestions/[sessionId]
+- Get vocabulary suggestions for session
+
+PUT /api/conversation/suggestions/[sessionId]
+- Update suggestion status (accepted/dismissed)
 ```
 
 **Component Architecture**:
@@ -466,6 +549,25 @@ src/features/suggestionWord/
 5. Suggestions displayed in structured format with detailed information
 6. Loading states and error handling provide smooth UX
 
+**User Experience Flow (Complete - 2025-11-08)**:
+
+1. User visits home page (`/`) - Browse vocabulary collection
+2. User visits conversation page (`/conversation`) - Start AI practice session
+3. Click "会話を始める" to create new session
+4. Engage in natural English conversation:
+   - Speak using microphone (Web Speech API)
+   - Or type messages in text input
+   - AI responds in B2-level English
+   - Toggle voice output on/off
+5. Click "会話を終了" - System analyzes conversation
+6. Review vocabulary suggestions via swipeable cards:
+   - Swipe right (or tap "追加") to add word to collection
+   - Swipe left (or tap "スキップ") to dismiss
+   - View conversation context and learning rationale
+   - Hear pronunciation with audio button
+7. View summary of accepted/rejected words
+8. Return home or start new conversation
+
 **Development Standards**:
 
 - TypeScript strict mode for type safety
@@ -473,3 +575,5 @@ src/features/suggestionWord/
 - Server-side data fetching with client-side interactivity
 - Comprehensive error handling and user feedback
 - Responsive design with mobile-first approach
+- Web Speech API for browser-native voice features
+- Real-time state management for conversation flow
