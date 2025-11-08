@@ -115,6 +115,9 @@ temp/
 # Shuttle
 .shuttle/
 
+# Secrets
+backend/Secrets.toml
+
 # Database
 *.db
 *.sqlite
