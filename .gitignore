@@ -115,6 +115,9 @@ temp/
 # Shuttle
 .shuttle/
 
+# Secrets
+backend/Secrets.toml
+
 # Database
 *.db
 *.sqlite
@@ -125,4 +128,7 @@ temp/
 .env.local
 # Claude IDE
 .claude/
+.playwright-mcp/
 
+# tauri
+target/
