@@ -22,6 +22,9 @@ use handlers::ai_handler::{
     analyze_conversation_handler, vocabulary_help_handler, word_suggestions_handler,
 };
 use handlers::auth_handler::{get_current_user, github_oauth_callback, google_oauth_callback};
+use handlers::conversation_handler::{
+    chat_handler, create_session_handler, end_session_handler, get_sessions_handler,
+};
 use handlers::word_handler::{
     create_word_handler, delete_word_handler, get_word_handler, get_words_handler,
     update_word_handler,
@@ -129,6 +132,10 @@ async fn main(
         )
         .route("/api/vocabulary-help", post(vocabulary_help_handler))
         .route("/api/word-suggestions", post(word_suggestions_handler))
+        // Conversation endpoints
+        .route("/api/conversation/session", post(create_session_handler).get(get_sessions_handler))
+        .route("/api/conversation/session/{id}/end", post(end_session_handler))
+        .route("/api/conversation/chat", post(chat_handler))
         .layer(from_fn_with_state(app_state.clone(), auth_middleware));
 
     let router = Router::new()
