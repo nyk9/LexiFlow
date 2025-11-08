@@ -18,11 +18,12 @@ model User {
   image         String?
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
-  
-  accounts    Account[]
-  sessions    Session[]
-  words       Word[]
-  dateRecords DateRecord[]
+
+  accounts              Account[]
+  sessions              Session[]
+  words                 Word[]
+  dateRecords           DateRecord[]
+  conversationSessions  ConversationSession[]
 
   @@map("users")
 }
@@ -100,4 +101,78 @@ model DateRecord {
 
   @@unique([date, userId])
   @@map("date_records")
+}
+
+// AI Conversation Analytics Tables
+
+model ConversationSession {
+  id              String   @id @default(cuid())
+  userId          String
+  user            User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startedAt       DateTime @default(now())
+  endedAt         DateTime?
+  durationMinutes Int?
+
+  topics              ConversationTopic[]
+  linguisticAnalysis  LinguisticAnalysis?
+  skillsAssessment    SkillsAssessment?
+  vocabularySuggestions VocabularySuggestion[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@map("conversation_sessions")
+}
+
+model ConversationTopic {
+  id              String   @id @default(cuid())
+  sessionId       String
+  session         ConversationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  topic           String
+  orderSequence   Int
+  complexityLevel String?
+  createdAt       DateTime @default(now())
+
+  @@map("conversation_topics")
+}
+
+model LinguisticAnalysis {
+  id                 String   @id @default(cuid())
+  sessionId          String   @unique
+  session            ConversationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  avgSentenceLength  Float?
+  vocabularyLevel    String?
+  grammarComplexity  String?
+  createdAt          DateTime @default(now())
+
+  @@map("linguistic_analysis")
+}
+
+model SkillsAssessment {
+  id                            String   @id @default(cuid())
+  sessionId                     String   @unique
+  session                       ConversationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  grammarAccuracyScore          Float?
+  vocabularyAppropriatenessScore Float?
+  sentenceComplexityScore       Float?
+  flowSmoothnessScore           Float?
+  responseTimingAvg             Float?
+  naturalPhraseUsageScore       Float?
+  createdAt                     DateTime @default(now())
+
+  @@map("skills_assessments")
+}
+
+model VocabularySuggestion {
+  id                  String   @id @default(cuid())
+  sessionId           String
+  session             ConversationSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  suggestedWord       String
+  userWordUsed        String?
+  conversationContext String?
+  suggestionReason    String?
+  status              String   @default("pending") // pending, accepted, dismissed
+  createdAt           DateTime @default(now())
+
+  @@map("vocabulary_suggestions")
 }

@@ -9,6 +9,9 @@ const Header = () => {
         <Link href={"/"} className="p-1 hover:underline">
           home
         </Link>
+        <Link href={"/conversation"} className="p-1 hover:underline">
+          conversation
+        </Link>
         <Link href={"/add"} className="p-1 hover:underline">
           add
         </Link>
