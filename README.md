@@ -4,31 +4,33 @@ LexiFlow is a hybrid vocabulary + AI conversation learning application built wit
 
 ## 📦 Project Structure
 
-This repository contains two separate implementations:
+This repository contains a unified Next.js codebase that can be built for two different targets:
 
-- **`/web-apps/frontend/`** - Web版 (Phase 1 MVP) - Next.js browser-based application
-- **`/frontend/`** - Tauri版 (Desktop App) - Tauri desktop application (planned)
+- **Web Version (default)** - Next.js browser-based application with SSR/PPR support for Vercel deployment
+- **Desktop Version (planned)** - Tauri desktop application with static export
+- **`/desktop/`** - Tauri configuration and Rust backend (Phase 2)
 - **`/backend/`** - Rust API Server (Phase 2) - Axum backend for future migration
 
-### Why Two Separate Implementations?
+### Single Codebase, Multiple Targets
 
-The Web版 and Tauri版 are kept separate due to fundamental differences in capabilities:
+Using the `BUILD_TARGET` environment variable, the same Next.js codebase can be configured for different deployment scenarios:
 
-| Feature             | Web版 (`/web-apps/frontend/`) | Tauri版 (`/frontend/`)   |
-| ------------------- | ----------------------------- | ------------------------ |
-| **Cache Strategy**  | Server-side (Vercel KV/Redis) | Local (SQLite/IndexedDB) |
-| **Cache Sharing**   | ✅ Shared across users        | ❌ Per-user only         |
-| **API Cost**        | 💰 Lower (shared cache)       | 💰 Higher (no sharing)   |
-| **Offline Mode**    | ❌ Limited                    | ✅ Full support          |
-| **Native Features** | ❌ Browser restricted         | ✅ Full OS integration   |
-| **Deployment**      | Vercel/Cloud                  | App Store/Direct         |
+| Feature             | Web Version (`BUILD_TARGET=web`) | Desktop Version (`BUILD_TARGET=desktop`) |
+| ------------------- | -------------------------------- | ---------------------------------------- |
+| **Build Output**    | Dynamic (SSR/ISR/PPR)            | Static Export                            |
+| **Cache Strategy**  | Server-side (Vercel KV/Redis)    | Local (SQLite/IndexedDB)                 |
+| **Cache Sharing**   | ✅ Shared across users           | ❌ Per-user only                         |
+| **API Cost**        | 💰 Lower (shared cache)          | 💰 Higher (no sharing)                   |
+| **Database**        | Prisma + PostgreSQL              | Rust + SQLite (via Tauri commands)       |
+| **Offline Mode**    | ❌ Limited                       | ✅ Full support                          |
+| **Native Features** | ❌ Browser restricted            | ✅ Full OS integration                   |
+| **Deployment**      | Vercel/Cloud                     | App Store/Direct                         |
 
-**Key Design Decision**: Server-side caching in Web版 allows multiple users to share API response caches, significantly reducing Gemini API costs. Tauri版 requires local-only caching, resulting in higher API usage per user.
+**Key Design Decision**: Server-side caching in Web version allows multiple users to share API response caches, significantly reducing Gemini API costs. Desktop version requires local-only caching, resulting in higher API usage per user.
 
-See individual README files for detailed implementation strategies:
+See desktop README for Tauri-specific implementation details:
 
-- [Web版 README](./web-apps/frontend/README.md)
-- [Tauri版 README](./frontend/README.md)
+- [Desktop Version README](./desktop/README.md)
 
 ## 🚀 Features
 
@@ -115,59 +117,57 @@ See individual README files for detailed implementation strategies:
 
 ```
 LexiFlow/
-├── web-apps/
-│   └── frontend/                # Web版 (Phase 1 MVP - Active Development)
-│       ├── src/
-│       │   ├── app/            # Next.js App Router
-│       │   │   ├── (auth)/     # Authentication routes (login, signup)
-│       │   │   ├── (main)/     # Main app routes
-│       │   │   │   ├── page.tsx           # Home (word list)
-│       │   │   │   ├── add/               # Add new word
-│       │   │   │   ├── conversation/      # AI conversation
-│       │   │   │   ├── quiz/              # Review/quiz
-│       │   │   │   └── test/              # Test pages
-│       │   │   └── api/        # Next.js API Routes
-│       │   │       ├── words/
-│       │   │       ├── conversation/
-│       │   │       │   ├── session/       # Session management
-│       │   │       │   ├── chat/          # AI chat endpoint
-│       │   │       │   ├── analyze/       # Conversation analysis
-│       │   │       │   └── suggestions/   # Vocabulary suggestions
-│       │   │       └── suggestion-word/
-│       │   ├── features/       # Feature-based modules
-│       │   │   ├── vocabulary/
-│       │   │   │   ├── components/
-│       │   │   │   ├── lib/
-│       │   │   │   └── types/
-│       │   │   ├── conversation/
-│       │   │   │   ├── components/
-│       │   │   │   ├── lib/
-│       │   │   │   └── types/
-│       │   │   └── suggestions/
-│       │   ├── components/     # Shared UI components
-│       │   │   └── ui/         # Shadcn/ui components
-│       │   ├── lib/            # Shared utilities
-│       │   ├── hooks/          # Custom React hooks
-│       │   ├── types/          # Global TypeScript types
-│       │   └── constants/
-│       ├── prisma/
-│       │   ├── schema.prisma   # Database schema (8 tables)
-│       │   └── migrations/
-│       ├── auth.config.ts      # Auth.js configuration
-│       ├── package.json
-│       └── README.md           # Web版 documentation
+├── src/                         # Next.js Application (Web & Desktop)
+│   ├── app/                    # Next.js App Router
+│   │   ├── (auth)/             # Authentication routes (login, signup)
+│   │   ├── (main)/             # Main app routes
+│   │   │   ├── page.tsx        # Home (word list)
+│   │   │   ├── add/            # Add new word
+│   │   │   ├── conversation/   # AI conversation
+│   │   │   ├── quiz/           # Review/quiz
+│   │   │   └── test/           # Test pages
+│   │   └── api/                # Next.js API Routes (Web version only)
+│   │       ├── words/
+│   │       ├── conversation/
+│   │       │   ├── session/    # Session management
+│   │       │   ├── chat/       # AI chat endpoint
+│   │       │   ├── analyze/    # Conversation analysis
+│   │       │   └── suggestions/# Vocabulary suggestions
+│   │       └── suggestion-word/
+│   ├── features/               # Feature-based modules
+│   │   ├── vocabulary/
+│   │   │   ├── components/
+│   │   │   ├── lib/
+│   │   │   └── types/
+│   │   ├── conversation/
+│   │   │   ├── components/
+│   │   │   ├── lib/
+│   │   │   └── types/
+│   │   └── suggestions/
+│   ├── components/             # Shared UI components
+│   │   └── ui/                 # Shadcn/ui components
+│   ├── lib/                    # Shared utilities
+│   ├── hooks/                  # Custom React hooks
+│   ├── types/                  # Global TypeScript types
+│   └── constants/
 │
-├── frontend/                    # Tauri版 (Desktop App - Planned)
-│   ├── src/                    # React frontend (shares components with Web版)
+├── prisma/                     # Database configuration
+│   ├── schema.prisma           # Database schema (8 tables)
+│   └── migrations/
+│
+├── public/                     # Static assets
+├── scripts/                    # Build and utility scripts
+│
+├── desktop/                    # Tauri Desktop App (Phase 2 - Planned)
 │   ├── src-tauri/              # Rust backend (Tauri commands)
 │   │   ├── src/
 │   │   │   ├── commands/       # Tauri commands
 │   │   │   ├── cache/          # Local SQLite cache
 │   │   │   └── services/
 │   │   └── Cargo.toml
-│   └── README.md               # Tauri版 documentation
+│   └── README.md               # Desktop version documentation
 │
-├── backend/                     # Rust API Server (Phase 2 - Planned)
+├── backend/                    # Rust API Server (Phase 2 - Planned)
 │   ├── src/
 │   │   ├── routes/             # Axum routes
 │   │   ├── models/             # Diesel models
@@ -176,8 +176,13 @@ LexiFlow/
 │   ├── migrations/             # Diesel migrations
 │   └── Cargo.toml
 │
-├── CLAUDE.md                    # Detailed requirements & architecture
-└── README.md                    # This file
+├── .env.example                # Environment variables template
+├── auth.config.ts              # Auth.js configuration
+├── next.config.ts              # Next.js configuration (BUILD_TARGET support)
+├── package.json                # Dependencies and scripts
+├── tsconfig.json               # TypeScript configuration
+├── CLAUDE.md                   # Detailed requirements & architecture
+└── README.md                   # This file
 ```
 
 ### Database Schema (8 Tables)
@@ -196,7 +201,7 @@ LexiFlow/
 - `skills_assessments` - Grammar, vocabulary, fluency scores
 - `vocabulary_suggestions` - Contextual word suggestions with conversation context
 
-## 🚦 Getting Started (Web版 - Phase 1 MVP)
+## 🚦 Getting Started (Web Version - Phase 1 MVP)
 
 ### Prerequisites
 
@@ -211,7 +216,7 @@ LexiFlow/
 
 ```bash
 git clone https://github.com/yourusername/LexiFlow.git
-cd LexiFlow/web-apps/frontend
+cd LexiFlow
 ```
 
 2. **Install dependencies:**
@@ -222,21 +227,11 @@ npm install
 
 3. **Set up environment variables:**
 
-Create `.env.local` file:
+Copy the example file and edit with your credentials:
 
 ```bash
-# Database (Neon PostgreSQL)
-DATABASE_URL="your-neon-database-url"
-
-# Authentication
-AUTH_SECRET="your-random-secret-key"
-AUTH_URL="http://localhost:3000"
-
-# AI Provider
-GEMINI_API_KEY="your-gemini-api-key"
-
-# App Configuration
-NEXT_PUBLIC_APP_NAME="LexiFlow"
+cp .env.example .env.local
+# Edit .env.local with your DATABASE_URL, AUTH_SECRET, and GOOGLE_GEMINI_API_KEY
 ```
 
 4. **Initialize database:**
@@ -257,24 +252,34 @@ The application will be available at `http://localhost:3000`
 ### Development Commands
 
 ```bash
-npm run dev          # Start dev server with Turbopack
-npm run build        # Production build
-npm run start        # Start production server
-npm run lint         # Run ESLint
-npm run format       # Format with Prettier
-npm run generate     # Generate Prisma Client + build
-```
+# Web version (default)
+npm run dev              # Start dev server with Turbopack
+npm run dev:web          # Explicitly start web version
+npm run build            # Production build (web)
+npm run build:web        # Explicitly build web version
 
-For detailed setup instructions, see [Web版 README](./web-apps/frontend/README.md)
+# Desktop version (Tauri - Phase 2)
+npm run dev:desktop      # Start desktop version dev server
+npm run build:desktop    # Build static export for desktop
+
+# Other commands
+npm run start            # Start production server
+npm run lint             # Run ESLint
+npm run format           # Format with Prettier
+npm run generate         # Generate Prisma Client + build
+```
 
 ## 🔧 Configuration
 
-### Environment Variables (Web版)
+### Environment Variables
 
 **Required:**
 
 ```bash
-# Database
+# Build Target
+BUILD_TARGET="web"                           # 'web' for Vercel, 'desktop' for Tauri
+
+# Database (Web version only)
 DATABASE_URL="postgresql://..."              # Neon PostgreSQL connection string
 
 # Authentication
@@ -282,7 +287,7 @@ AUTH_SECRET="random-secret-key"              # Generate with: openssl rand -base
 AUTH_URL="http://localhost:3000"             # Your app URL
 
 # AI Provider
-GEMINI_API_KEY="your-gemini-api-key"        # Get from Google AI Studio
+GOOGLE_GEMINI_API_KEY="your-gemini-api-key" # Get from Google AI Studio
 ```
 
 **Optional:**
@@ -292,11 +297,20 @@ GEMINI_API_KEY="your-gemini-api-key"        # Get from Google AI Studio
 NEXT_PUBLIC_APP_NAME="LexiFlow"
 NEXT_PUBLIC_API_URL="http://localhost:3000" # For Phase 2 Rust backend
 
-# Caching (Production)
+# Caching (Production - Web version only)
 KV_URL="redis://..."                         # Vercel KV for production caching
 KV_REST_API_URL="https://..."
 KV_REST_API_TOKEN="..."
 ```
+
+### BUILD_TARGET Configuration
+
+The `BUILD_TARGET` environment variable controls how Next.js is configured:
+
+- **`BUILD_TARGET=web`** (default): Enables dynamic rendering, SSR, API Routes, Prisma
+- **`BUILD_TARGET=desktop`**: Enables static export, disables image optimization for Tauri
+
+See `.env.example` for a complete template with all available options.
 
 ## 📡 API Endpoints
 

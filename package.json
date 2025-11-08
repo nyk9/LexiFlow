@@ -4,7 +4,11 @@
   "private": true,
   "scripts": {
     "dev": "next dev --turbopack",
+    "dev:web": "BUILD_TARGET=web next dev --turbopack",
+    "dev:desktop": "BUILD_TARGET=desktop next dev --turbopack",
     "build": "next build --turbopack",
+    "build:web": "BUILD_TARGET=web next build --turbopack",
+    "build:desktop": "BUILD_TARGET=desktop next build --turbopack",
     "generate": "prisma generate && next build --turbopack",
     "start": "next start",
     "lint": "next lint",
