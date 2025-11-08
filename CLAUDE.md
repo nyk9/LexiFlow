@@ -406,6 +406,26 @@ To manage API costs and improve response times, especially for AI-related endpoi
 - ✅ Responsive conversation UI with chat bubbles
 - ✅ Loading and error states
 
+**Post-Conversation Vocabulary Suggestions** (NEW - 2025-11-08):
+
+- ✅ AI-powered conversation analysis with Gemini API
+- ✅ Contextual vocabulary gap detection
+- ✅ Swipeable card UI for word suggestions
+- ✅ Touch and mouse gesture support
+- ✅ One-tap word addition to collection
+- ✅ Conversation context display for each suggestion
+- ✅ Audio pronunciation feature
+- ✅ Review summary with acceptance statistics
+- ✅ Automatic suggestion status tracking
+
+**Conversation Analytics** (NEW - 2025-11-08):
+
+- ✅ Topic extraction and progression tracking
+- ✅ Skills assessment (grammar, vocabulary, fluency)
+- ✅ Linguistic complexity analysis
+- ✅ Personalized feedback in Japanese
+- ✅ Database persistence for all metrics
+
 **Conversation Database Schema**:
 
 - ✅ ConversationSession table
@@ -416,38 +436,32 @@ To manage API costs and improve response times, especially for AI-related endpoi
 
 #### 🚧 In Progress
 
-**Conversation Analysis Features**:
+**Enhanced Conversation Features**:
 
-- Post-conversation vocabulary suggestions (card swipe UI)
-- Mid-conversation vocabulary help mode
-- Skills assessment scoring
-- Linguistic complexity analysis
+- Mid-conversation vocabulary help mode (tutor mode)
+- Real-time vocabulary question detection
+- Conversation analytics visualization
+- Performance metrics dashboard
 
 #### 📋 Next Development Priorities (Phase 1 Completion)
 
-1. **Post-Conversation Vocabulary Suggestions**:
-   - Swipeable card UI for word suggestions
-   - AI analysis of conversation gaps
-   - One-tap add to vocabulary collection
-   - Conversation context display
-
-2. **Conversation Analytics**:
-   - Skills assessment implementation
-   - Linguistic complexity analysis
-   - Topic progression tracking
-   - Performance metrics visualization
-
-3. **Mid-Conversation Vocabulary Mode**:
+1. **Mid-Conversation Vocabulary Mode**:
    - Vocabulary question detection
    - Tutor mode with detailed explanations
    - Resume conversation functionality
 
-4. **Enhanced Vocabulary Integration**:
-   - Add suggested words to collection
-   - Link vocabulary to conversation sessions
-   - Review words learned from conversations
+2. **Conversation Analytics Visualization**:
+   - Dashboard showing conversation history
+   - Skills progress charts
+   - Topic distribution analysis
+   - Vocabulary acquisition tracking
 
-5. **API Architecture**:
+3. **Enhanced Learning Features**:
+   - Spaced repetition for conversation-learned words
+   - Review mode for past conversation vocabulary
+   - Difficulty adjustment based on performance
+
+4. **API Architecture**:
    - OpenAPI contract definition
    - Documentation for Rust migration readiness
 
@@ -494,6 +508,20 @@ POST /api/conversation/chat
 - Send message and receive AI response
 - Context-aware conversation with history
 - B2-level English practice with natural dialogue
+
+# Conversation Analysis
+POST /api/conversation/analyze
+- Analyze conversation for vocabulary gaps
+- Generate contextual word suggestions
+- Calculate skills assessment scores
+- Extract topics and linguistic metrics
+
+# Vocabulary Suggestions
+GET /api/conversation/suggestions/[sessionId]
+- Get vocabulary suggestions for session
+
+PUT /api/conversation/suggestions/[sessionId]
+- Update suggestion status (accepted/dismissed)
 ```
 
 **Component Architecture**:
@@ -521,7 +549,7 @@ src/features/suggestionWord/
 5. Suggestions displayed in structured format with detailed information
 6. Loading states and error handling provide smooth UX
 
-**User Experience Flow (Updated)**:
+**User Experience Flow (Complete - 2025-11-08)**:
 
 1. User visits home page (`/`) - Browse vocabulary collection
 2. User visits conversation page (`/conversation`) - Start AI practice session
@@ -531,9 +559,14 @@ src/features/suggestionWord/
    - Or type messages in text input
    - AI responds in B2-level English
    - Toggle voice output on/off
-5. End conversation to save session data
-6. [Future] Review vocabulary suggestions from conversation
-7. [Future] View conversation analytics and progress
+5. Click "会話を終了" - System analyzes conversation
+6. Review vocabulary suggestions via swipeable cards:
+   - Swipe right (or tap "追加") to add word to collection
+   - Swipe left (or tap "スキップ") to dismiss
+   - View conversation context and learning rationale
+   - Hear pronunciation with audio button
+7. View summary of accepted/rejected words
+8. Return home or start new conversation
 
 **Development Standards**:
 
