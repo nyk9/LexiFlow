@@ -125,4 +125,7 @@ temp/
 .env.local
 # Claude IDE
 .claude/
+.playwright-mcp/
 
+# tauri
+target/
