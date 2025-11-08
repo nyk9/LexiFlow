@@ -1,9 +1,10 @@
 "use client";
 
 import { useState, useEffect, useRef } from "react";
+import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { Mic, MicOff, Volume2, VolumeX, Send } from "lucide-react";
+import { Mic, MicOff, Volume2, VolumeX, Send, Loader2 } from "lucide-react";
 import { Textarea } from "@/components/ui/textarea";
 import { useToast } from "@/hooks/use-toast";
 
@@ -22,10 +23,12 @@ export function ConversationClient() {
   const [textInput, setTextInput] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [useVoice, setUseVoice] = useState(true);
+  const [isAnalyzing, setIsAnalyzing] = useState(false);
 
   const recognitionRef = useRef<SpeechRecognition | null>(null);
   const synthRef = useRef<SpeechSynthesis | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
+  const router = useRouter();
   const { toast } = useToast();
 
   // Initialize speech recognition
@@ -133,27 +136,81 @@ export function ConversationClient() {
     }
   };
 
-  // End conversation session
+  // End conversation session and analyze
   const endSession = async () => {
     if (!sessionId) return;
 
+    // Stop any ongoing speech
+    if (recognitionRef.current) {
+      recognitionRef.current.stop();
+    }
+    if (synthRef.current) {
+      synthRef.current.cancel();
+    }
+
+    setIsAnalyzing(true);
+
     try {
+      // End session
       await fetch(`/api/conversation/session/${sessionId}`, {
         method: "PUT",
       });
 
+      // Only analyze if there are user messages (at least 2 exchanges)
+      const userMessageCount = messages.filter(m => m.role === "user").length;
+
+      if (userMessageCount < 2) {
+        toast({
+          title: "会話が短すぎます",
+          description: "もう少し会話してから終了してください",
+          variant: "destructive",
+        });
+        setIsAnalyzing(false);
+        return;
+      }
+
       toast({
-        title: "会話終了",
-        description: "会話セッションが終了しました",
+        title: "会話を分析中...",
+        description: "少々お待ちください",
       });
 
-      // Reset state
-      setSessionId(null);
-      setMessages([]);
-      setCurrentTranscript("");
-      setIsListening(false);
+      // Analyze conversation
+      const analysisResponse = await fetch("/api/conversation/analyze", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          sessionId,
+          messages: messages.map((m) => ({
+            role: m.role,
+            content: m.content,
+          })),
+        }),
+      });
+
+      if (!analysisResponse.ok) {
+        throw new Error("Failed to analyze conversation");
+      }
+
+      const analysisData = await analysisResponse.json();
+
+      // Store analysis data in sessionStorage
+      sessionStorage.setItem(
+        `analysis_${sessionId}`,
+        JSON.stringify(analysisData)
+      );
+
+      // Navigate to suggestions page
+      router.push(`/conversation/suggestions/${sessionId}`);
     } catch (error) {
       console.error("Error ending session:", error);
+      toast({
+        title: "エラー",
+        description: "会話の分析に失敗しました",
+        variant: "destructive",
+      });
+      setIsAnalyzing(false);
     }
   };
 
@@ -295,11 +352,23 @@ export function ConversationClient() {
             variant="outline"
             size="icon"
             onClick={() => setUseVoice(!useVoice)}
+            disabled={isAnalyzing}
           >
             {useVoice ? <Volume2 /> : <VolumeX />}
           </Button>
-          <Button variant="destructive" onClick={endSession}>
-            会話を終了
+          <Button
+            variant="destructive"
+            onClick={endSession}
+            disabled={isAnalyzing}
+          >
+            {isAnalyzing ? (
+              <>
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                分析中...
+              </>
+            ) : (
+              "会話を終了"
+            )}
           </Button>
         </div>
       </div>
